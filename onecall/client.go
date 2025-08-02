@@ -89,8 +89,8 @@ func (c *Client) OneCallRaw(lat, lon float64, opts *OneCallOptions) (*OneCallRes
 	}
 
 	q := u.Query()
-	q.Set(latParam, fmt.Sprintf("%.2f", lat))
-	q.Set(lonParam, fmt.Sprintf("%.2f", lon))
+	q.Set(latParam, fmt.Sprintf("%f", lat))
+	q.Set(lonParam, fmt.Sprintf("%f", lon))
 	q.Set(appIDParam, c.appID)
 
 	if opts != nil && len(opts.Exclude) > 0 {
