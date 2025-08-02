@@ -34,39 +34,33 @@ type ClientOptions struct {
 }
 
 func NewClient(opts *ClientOptions) (*Client, error) {
-	client := &Client{
-		baseURL: baseURL,
-	}
+
 	// Defaults if opts are not provided
 	if opts == nil {
+		opts = &ClientOptions{}
+
+	}
+
+	if opts.AppID == "" {
 		if apiID, ok := internal.LoadEnvVar(); ok {
-			client.appID = apiID
-		}
-
-		client.httpClient = http.DefaultClient
-		client.logger = slog.Default()
-	} else { // Otherwise use provided values
-		if opts.AppID == "" {
-			if apiID, ok := internal.LoadEnvVar(); ok {
-				client.appID = apiID
-			}
-		} else {
-			client.appID = opts.AppID
-		}
-
-		if opts.HttpClient == nil {
-			client.httpClient = http.DefaultClient
-		} else {
-			client.httpClient = opts.HttpClient
-		}
-
-		if opts.Logger == nil {
-			client.logger = slog.Default()
-		} else {
-			client.logger = opts.Logger
+			opts.AppID = apiID
 		}
 	}
-	return client, nil
+
+	if opts.HttpClient == nil {
+		opts.HttpClient = http.DefaultClient
+	}
+
+	if opts.Logger == nil {
+		opts.Logger = slog.Default()
+	}
+
+	return &Client{
+		baseURL:    baseURL,
+		appID:      opts.AppID,
+		httpClient: opts.HttpClient,
+		logger:     opts.Logger,
+	}, nil
 }
 
 type GeoOptions struct {

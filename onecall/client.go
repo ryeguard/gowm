@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
@@ -25,45 +26,45 @@ type Client struct {
 	baseURL    string
 	appID      string
 	httpClient *http.Client
+	logger     *slog.Logger
 	unit       Unit
 }
 
 type ClientOptions struct {
 	HttpClient *http.Client
+	Logger     *slog.Logger
 	AppID      string // Your OpenWeather API key. May also be set as environment variable.
 	Units      Unit   // Units to use for the client. Overruled by unit option explicitly passed to client calls.
 }
 
 func NewClient(opts *ClientOptions) (*Client, error) {
-	client := &Client{
-		baseURL: baseURL,
+	if opts == nil {
+		opts = &ClientOptions{}
 	}
 
-	// Defaults if opts are not provided
-	if opts == nil {
-		if apiID, ok := internal.LoadEnvVar(); ok {
-			client.appID = apiID
-		}
+	if opts.HttpClient == nil {
+		opts.HttpClient = http.DefaultClient
+	}
+	if opts.Logger == nil {
+		opts.Logger = slog.Default()
+	}
 
-		client.httpClient = http.DefaultClient
-	} else { // Otherwise use provided values
-		if opts.AppID == "" {
-			if apiID, ok := internal.LoadEnvVar(); ok {
-				client.appID = apiID
-			}
-		} else {
-			client.appID = opts.AppID
+	if opts.AppID == "" {
+		if appID, ok := internal.LoadEnvVar(); ok {
+			opts.AppID = appID
 		}
+	}
 
-		if opts.HttpClient == nil {
-			client.httpClient = http.DefaultClient
-		} else {
-			client.httpClient = opts.HttpClient
-		}
+	client := &Client{
+		baseURL:    baseURL,
+		appID:      opts.AppID,
+		httpClient: opts.HttpClient,
+		logger:     opts.Logger,
+		unit:       opts.Units,
+	}
 
-		if opts.Units.IsValid() {
-			client.unit = opts.Units
-		}
+	if opts.Units.IsValid() {
+		client.unit = opts.Units
 	}
 	return client, nil
 }

@@ -1,6 +1,7 @@
 package owm
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/ryeguard/gowm/geo"
@@ -14,57 +15,63 @@ type Client struct {
 
 	httpClient *http.Client
 	appID      string
+	logger     *slog.Logger
 }
 
 type ClientOptions struct {
 	HttpClient *http.Client
 	AppID      string
+	Logger     *slog.Logger
 }
 
 func NewClient(opts *ClientOptions) *Client {
-	client := &Client{}
-
-	// Defaults if opts are not provided
 	if opts == nil {
+		opts = &ClientOptions{}
+	}
+
+	if opts.HttpClient == nil {
+		opts.HttpClient = http.DefaultClient
+	}
+
+	if opts.Logger == nil {
+		opts.Logger = slog.Default()
+	}
+
+	if opts.AppID == "" {
 		if apiID, ok := internal.LoadEnvVar(); ok {
-			client.appID = apiID
-		}
-
-		client.httpClient = http.DefaultClient
-	} else {
-		if opts.AppID == "" {
-			if apiID, ok := internal.LoadEnvVar(); ok {
-				client.appID = apiID
-			}
+			opts.AppID = apiID
 		} else {
-			client.appID = opts.AppID
-		}
-
-		if opts.HttpClient == nil {
-			client.httpClient = http.DefaultClient
-		} else {
-			client.httpClient = opts.HttpClient
+			opts.Logger.Warn("owm client app id needed for auth is not set")
 		}
 	}
 
-	return client
+	return &Client{
+		httpClient: opts.HttpClient,
+		appID:      opts.AppID,
+		logger:     opts.Logger,
+	}
 }
 
 func (c *Client) WithOneCall(opts *onecall.ClientOptions) *Client {
 	if opts == nil {
-		opts = &onecall.ClientOptions{AppID: c.appID, HttpClient: http.DefaultClient}
-	} else {
-		if opts.AppID == "" {
-			opts.AppID = c.appID
-		}
+		opts = &onecall.ClientOptions{}
+	}
 
-		if opts.HttpClient == nil {
-			opts.HttpClient = http.DefaultClient
-		}
+	if opts.HttpClient == nil {
+		opts.HttpClient = c.httpClient
+	}
+
+	if opts.AppID == "" {
+		opts.AppID = c.appID
+	}
+
+	if opts.Logger == nil {
+		opts.Logger = c.logger
 	}
 
 	oc, err := onecall.NewClient(opts)
 	if err != nil {
+		c.logger.Error("unable to create onecall client", "error", err)
 		panic(err)
 	}
 	c.OneCall = oc
@@ -73,19 +80,23 @@ func (c *Client) WithOneCall(opts *onecall.ClientOptions) *Client {
 
 func (c *Client) WithGeo(opts *geo.ClientOptions) *Client {
 	if opts == nil {
-		opts = &geo.ClientOptions{AppID: c.appID, HttpClient: http.DefaultClient}
-	} else {
-		if opts.AppID == "" {
-			opts.AppID = c.appID
-		}
+		opts = &geo.ClientOptions{}
+	}
+	if opts.HttpClient == nil {
+		opts.HttpClient = c.httpClient
+	}
 
-		if opts.HttpClient == nil {
-			opts.HttpClient = http.DefaultClient
-		}
+	if opts.AppID == "" {
+		opts.AppID = c.appID
+	}
+
+	if opts.Logger == nil {
+		opts.Logger = c.logger
 	}
 
 	geo, err := geo.NewClient(opts)
 	if err != nil {
+		c.logger.Error("unable to create geo client", "error", err)
 		panic(err)
 	}
 	c.Geo = geo
