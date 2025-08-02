@@ -15,27 +15,46 @@ const (
 
 type Client struct {
 	baseURL    string
-	apiID      string
+	appID      string
 	httpClient *http.Client
 	unit       Unit
 }
 
 type ClientOptions struct {
-	Units Unit
+	HttpClient *http.Client
+	AppID      string // Your OpenWeather API key. May also be set as environment variable.
+	Units      Unit   // Units to use for the client. Overruled by unit option explicitly passed to client calls.
 }
 
-func NewClient(httpClient *http.Client, apiKey string, opts *ClientOptions) *Client {
+func NewClient(opts *ClientOptions) (*Client, error) {
 	client := &Client{
-		baseURL:    baseURL,
-		apiID:      apiKey,
-		httpClient: httpClient,
+		baseURL: baseURL,
 	}
-	if opts != nil {
-		if opts.Units.IsValid() {
-			client.unit = opts.Units
+	if opts == nil || opts.HttpClient == nil {
+		client.httpClient = http.DefaultClient
+	}
+	// Attempt to load from env var(s) if not set
+	if opts == nil || opts.AppID == "" {
+		if apiID, ok := loadEnvVar(); ok {
+			client.appID = apiID
+		} else {
+			return nil, fmt.Errorf("app id is required as client options or set as environment variable")
 		}
 	}
-	return client
+	if opts != nil && opts.Units.IsValid() {
+		client.unit = opts.Units
+	}
+	return client, nil
+}
+
+func loadEnvVar() (string, bool) {
+	for _, key := range []string{"OWM_APP_ID", "OWM_API_KEY"} {
+		appId, ok := os.LookupEnv(key)
+		if ok {
+			return appId, true
+		}
+	}
+	return "", false
 }
 
 type OneCallOptions struct {
@@ -60,19 +79,19 @@ func (c *Client) OneCallRaw(lat, lon float64, opts *OneCallOptions) (*OneCallRes
 	q := u.Query()
 	q.Set("lat", fmt.Sprintf("%.2f", lat))
 	q.Set("lon", fmt.Sprintf("%.2f", lon))
-	q.Set("appid", c.apiID)
+	q.Set("appid", c.appID)
 
-	if len(opts.Exclude) > 0 {
+	if opts != nil && len(opts.Exclude) > 0 {
 		q.Set("exclude", ExcludeList(opts.Exclude).String())
 	}
 
-	if opts.Units.IsValid() {
+	if opts != nil && opts.Units.IsValid() {
 		q.Set("unit", opts.Units.String())
 	} else if c.unit.IsValid() {
 		q.Set("unit", c.unit.String())
 	}
 
-	if opts.Lang.IsValid() {
+	if opts != nil && opts.Lang.IsValid() {
 		q.Set("lang", opts.Lang.String())
 	}
 
