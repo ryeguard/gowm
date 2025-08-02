@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+
+	"github.com/ryeguard/gowm/internal"
 )
 
 const (
@@ -36,33 +38,34 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 	client := &Client{
 		baseURL: baseURL,
 	}
-	if opts == nil || opts.HttpClient == nil {
-		client.httpClient = http.DefaultClient
-	}
-	// Attempt to load from env var(s) if not set
-	if opts == nil || opts.AppID == "" {
-		if apiID, ok := loadEnvVar(); ok {
+
+	// Defaults if opts are not provided
+	if opts == nil {
+		if apiID, ok := internal.LoadEnvVar(); ok {
 			client.appID = apiID
-		} else {
-			return nil, fmt.Errorf("app id is required as client options or set as environment variable")
 		}
-	} else {
-		client.appID = opts.AppID
-	}
-	if opts != nil && opts.Units.IsValid() {
-		client.unit = opts.Units
+
+		client.httpClient = http.DefaultClient
+	} else { // Otherwise use provided values
+		if opts.AppID == "" {
+			if apiID, ok := internal.LoadEnvVar(); ok {
+				client.appID = apiID
+			}
+		} else {
+			client.appID = opts.AppID
+		}
+
+		if opts.HttpClient == nil {
+			client.httpClient = http.DefaultClient
+		} else {
+			client.httpClient = opts.HttpClient
+		}
+
+		if opts.Units.IsValid() {
+			client.unit = opts.Units
+		}
 	}
 	return client, nil
-}
-
-func loadEnvVar() (string, bool) {
-	for _, key := range []string{"OWM_APP_ID", "OWM_API_KEY"} {
-		appId, ok := os.LookupEnv(key)
-		if ok {
-			return appId, true
-		}
-	}
-	return "", false
 }
 
 type OneCallOptions struct {
@@ -104,8 +107,6 @@ func (c *Client) OneCallRaw(lat, lon float64, opts *OneCallOptions) (*OneCallRes
 	}
 
 	u.RawQuery = q.Encode()
-
-	fmt.Println(u.String())
 
 	resp, err := c.httpClient.Get(u.String())
 	if err != nil {
