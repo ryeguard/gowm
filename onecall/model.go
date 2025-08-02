@@ -1,7 +1,5 @@
 package onecall
 
-import "time"
-
 type oneCallResponseCommon struct {
 	Lat            float64 `json:"lat"`
 	Lon            float64 `json:"lon"`
@@ -9,55 +7,20 @@ type oneCallResponseCommon struct {
 	TimezoneOffset int     `json:"timezone_offset"`
 }
 
+// OneCallResponseRaw is a direct mapping of what is returned from One Call API calls.
 type OneCallResponseRaw struct {
 	oneCallResponseCommon
-	Current CurrentResponseRaw `json:"current"`
+	Current  CurrentResponseRaw  `json:"current"`
+	Minutely []MinuteResponseRaw `json:"minutely"`
+	Daily    []DailyResponseRaw  `json:"daily"`
 }
 
-type CurrentResponseRaw struct {
-	// Current time, Unix, UTC
-	Dt int64 `json:"dt"`
-
-	// Sunrise time, Unix, UTC. For polar areas in midnight sun and polar night periods this parameter is not returned in the response
-	Sunrise int64 `json:"sunrise"`
-
-	// Sunset time, Unix, UTC. For polar areas in midnight sun and polar night periods this parameter is not returned in the response
-	Sunset int64 `json:"sunset"`
-
-	// Temperature. Units - default: kelvin, metric: Celsius, imperial: Fahrenheit.
-	Temp float64 `json:"temp"`
-
-	// Temperature. This temperature parameter accounts for the human perception of weather. Units – default: kelvin, metric: Celsius, imperial: Fahrenheit.
-	FeelsLike float64 `json:"feels_like"`
-
-	// Atmospheric pressure at sea level, hPa
-	Pressure int64 `json:"pressure"`
-
-	// Humidity, %
-	Humidity int `json:"humidity"`
-
-	// Atmospheric temperature (varying according to pressure and humidity) below which water droplets begin to condense and dew can form. Units – default: kelvin, metric: Celsius, imperial: Fahrenheit
-	DewPoint float64 `json:"dew_point"`
-
-	// Cloudiness, %
-	Clouds int `json:"clouds"`
-
-	// Current UV index.
-	UVI float64 `json:"uvi"`
-
-	// Average visibility, metres. The maximum value of the visibility is 10 km
-	Visibility int `json:"visibility"`
-
-	// Wind speed. Wind speed. Units – default: metre/sec, metric: metre/sec, imperial: miles/hour.
-	WindSpeed float64 `json:"wind_speed"`
-
-	// (where available) Wind gust. Units – default: metre/sec, metric: metre/sec, imperial: miles/hour.
-	WindGust *float64 `json:"wind_gust"`
-
-	// Wind direction, degrees (meteorological)
-	WindDeg int `json:"wind_deg"`
-
-	Weather []WeatherRaw `json:"weather"`
+// OneCallResponse is parsed from `OneCallResponseRaw` and is a more convenient, ergonomic data structure.
+type OneCallResponse struct {
+	oneCallResponseCommon
+	Current  CurrentResponse
+	Minutely []MinuteResponse
+	Daily    []DailyResponse
 }
 
 type WeatherRaw struct {
@@ -67,52 +30,30 @@ type WeatherRaw struct {
 	Icon        string `json:"icon"`
 }
 
-type Weather struct {
-	Condition WeatherCondition
-}
+type weathersRaw []WeatherRaw
 
-type CurrentResponse struct {
-	Dt time.Time
-
-	// Sunrise time, Unix, UTC. For polar areas in midnight sun and polar night periods this parameter is not returned in the response.
-	// Use time.IsZero() to distinguish if a value was returned or not.
-	Sunrise time.Time
-
-	// Sunset time, Unix, UTC. For polar areas in midnight sun and polar night periods this parameter is not returned in the response.
-	// Use time.IsZero() to distinguish if a value was returned or not.
-	Sunset time.Time
-
-	// Temperature. Units - default: kelvin, metric: Celsius, imperial: Fahrenheit.
-	Temp float64
-
-	Weather []WeatherCondition
-}
-
-type OneCallResponse struct {
-	oneCallResponseCommon
-	Current CurrentResponse
-	Weather []WeatherCondition
-}
-
-func (c *CurrentResponseRaw) Parse() *CurrentResponse {
-	var conditions []WeatherCondition
-	for _, w := range c.Weather {
-		if c, ok := idToWeatherCondition[w.ID]; ok {
-			conditions = append(conditions, c)
-		}
+func (w weathersRaw) convert() []WeatherCondition {
+	var out []WeatherCondition
+	for _, v := range w {
+		out = append(out, idToWeatherCondition[v.ID])
 	}
-	return &CurrentResponse{
-		Dt:      time.Unix(c.Dt, 0),
-		Sunrise: time.Unix(c.Sunrise, 0),
-		Sunset:  time.Unix(c.Sunset, 0),
-		Temp:    c.Temp,
-		Weather: conditions,
-	}
+	return out
 }
 
-func (r *OneCallResponseRaw) Parse() *OneCallResponse {
+func (r OneCallResponseRaw) Parse() *OneCallResponse {
 	return &OneCallResponse{
 		oneCallResponseCommon: r.oneCallResponseCommon,
 		Current:               *r.Current.Parse(),
+		Minutely:              minuteResponsesRaw(r.Minutely).Parse(),
+		Daily:                 dailyResponsesRaw(r.Daily).Parse(),
+	}
+}
+
+func (p OneCallResponse) convert() *OneCallResponseRaw {
+	return &OneCallResponseRaw{
+		oneCallResponseCommon: p.oneCallResponseCommon,
+		Current:               p.Current.Parse(),
+		Minutely:              minuteResponses(p.Minutely).convert(),
+		Daily:                 dailyResponses(p.Daily).parse(),
 	}
 }
