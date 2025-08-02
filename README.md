@@ -4,7 +4,22 @@ A Go [OpenWeatherMap API](https://openweathermap.org/api) client.
 
 ## Getting Started
 
-Sign up for free at [openweathermap.org](https://openweathermap.org/) and get your API key after having signed in.
+First, make sure you have all of the below prerequisites:
+
+- Installation of Go, e.g., from [go.dev](https://go.dev/doc/install).
+- API key from OpenWeatherMap
+  - Sign up for free at [openweathermap.org](https://openweathermap.org/)
+  - Get your API key after having signed in
+  - Note: API key activation may take some time
+
+Now, you should be able to either use this project's packages in your project, or clone this repo and contribute/run the examples provided.
+
+Examples of basic as well as advanced usage are located in the [examples](./examples/) dir. To run any of the examples (having cloned this repo):
+
+```bash
+# e.g., the owm_basic example
+go run examples/owm_basic/main.go
+```
 
 ## APIs
 
@@ -12,7 +27,9 @@ Sign up for free at [openweathermap.org](https://openweathermap.org/) and get yo
 
 The [One Call API 3.0](https://openweathermap.org/api/one-call-3) client is implemented in [`onecall/client.go`](./onecall/client.go)
 
-Please see the [examples](./examples/) for examples on basic and advanced usage.
+## Contributing
+
+Contributions are welcome.
 
 ## Disclaimer
 
