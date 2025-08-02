@@ -7,11 +7,13 @@ import (
 
 	"github.com/ryeguard/gowm/onecall"
 	"github.com/ryeguard/gowm/pkg/owm"
+
+	_ "github.com/joho/godotenv/autoload" // auto-loads .env file
 )
 
 func main() {
 	client := owm.
-		NewClient(&owm.ClientOptions{AppID: "YOUR-API-KEY"}).
+		NewClient(nil).
 		WithOneCall(&onecall.ClientOptions{
 			// By default, OpenWeatherMap API returns Kelvin for temperature,
 			// which is not very common for everyday applications.
