@@ -46,6 +46,8 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 		} else {
 			return nil, fmt.Errorf("app id is required as client options or set as environment variable")
 		}
+	} else {
+		client.appID = opts.AppID
 	}
 	if opts != nil && opts.Units.IsValid() {
 		client.unit = opts.Units
