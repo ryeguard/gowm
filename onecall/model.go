@@ -97,11 +97,9 @@ type OneCallResponse struct {
 func (c *CurrentResponseRaw) Parse() *CurrentResponse {
 	var conditions []WeatherCondition
 	for _, w := range c.Weather {
-		c, ok := idToWeatherCondition[w.ID]
-		if !ok {
-			panic("unrecognized id")
+		if c, ok := idToWeatherCondition[w.ID]; ok {
+			conditions = append(conditions, c)
 		}
-		conditions = append(conditions, c)
 	}
 	return &CurrentResponse{
 		Dt:      time.Unix(c.Dt, 0),
