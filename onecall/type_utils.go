@@ -35,3 +35,7 @@ func (w weatherConditions) convert() []WeatherRaw {
 	}
 	return out
 }
+
+func ptr[T any](v T) *T {
+	return &v
+}
