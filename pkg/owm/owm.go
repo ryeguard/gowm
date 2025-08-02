@@ -7,7 +7,7 @@ import (
 )
 
 type Client struct {
-	OneCall *onecall.Client
+	*onecall.Client
 }
 
 func NewClient(opts *onecall.ClientOptions) (*Client, error) {
@@ -16,6 +16,6 @@ func NewClient(opts *onecall.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("new OneCall client: %w", err)
 	}
 	return &Client{
-		OneCall: oc,
+		oc,
 	}, nil
 }
