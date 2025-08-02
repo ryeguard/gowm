@@ -10,7 +10,13 @@ import (
 )
 
 const (
-	baseURL = "https://api.openweathermap.org/data/3.0/onecall"
+	baseURL      = "https://api.openweathermap.org/data/3.0/onecall"
+	latParam     = "lat"
+	lonParam     = "lon"
+	appIDParam   = "appid"
+	excludeParam = "exclude"
+	unitsParam   = "units"
+	langParam    = "lang"
 )
 
 type Client struct {
@@ -65,10 +71,10 @@ type OneCallOptions struct {
 
 func (c *Client) OneCallRaw(lat, lon float64, opts *OneCallOptions) (*OneCallResponseRaw, error) {
 	if lat < -90 || lat > 90 {
-		return nil, fmt.Errorf("TODO")
+		return nil, fmt.Errorf("lat argument must be in range (-90; 90), is %v", lat)
 	}
 	if lon < -180 || lon > 180 {
-		return nil, fmt.Errorf("TODO")
+		return nil, fmt.Errorf("lon argument must be in range (-180; 180), is %v", lon)
 	}
 
 	u, err := url.Parse(c.baseURL)
@@ -77,22 +83,22 @@ func (c *Client) OneCallRaw(lat, lon float64, opts *OneCallOptions) (*OneCallRes
 	}
 
 	q := u.Query()
-	q.Set("lat", fmt.Sprintf("%.2f", lat))
-	q.Set("lon", fmt.Sprintf("%.2f", lon))
-	q.Set("appid", c.appID)
+	q.Set(latParam, fmt.Sprintf("%.2f", lat))
+	q.Set(lonParam, fmt.Sprintf("%.2f", lon))
+	q.Set(appIDParam, c.appID)
 
 	if opts != nil && len(opts.Exclude) > 0 {
-		q.Set("exclude", ExcludeList(opts.Exclude).String())
+		q.Set(excludeParam, ExcludeList(opts.Exclude).String())
 	}
 
 	if opts != nil && opts.Units.IsValid() {
-		q.Set("unit", opts.Units.String())
+		q.Set(unitsParam, opts.Units.String())
 	} else if c.unit.IsValid() {
-		q.Set("unit", c.unit.String())
+		q.Set(unitsParam, c.unit.String())
 	}
 
 	if opts != nil && opts.Lang.IsValid() {
-		q.Set("lang", opts.Lang.String())
+		q.Set(langParam, opts.Lang.String())
 	}
 
 	u.RawQuery = q.Encode()
@@ -141,5 +147,4 @@ func (c *Client) OneCall(lat, lon float64, opts *OneCallOptions) (*OneCallRespon
 	}
 
 	return raw.Parse(), nil
-
 }
