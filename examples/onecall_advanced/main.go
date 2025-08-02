@@ -3,13 +3,21 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/ryeguard/gowm/onecall"
 	"golang.org/x/time/rate"
 )
 
 func main() {
+	// Load a .env file with your API key instead
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
+
 	httpClient := &http.Client{
 		Timeout: time.Second,
 
@@ -20,7 +28,10 @@ func main() {
 
 	client, err := onecall.NewClient(&onecall.ClientOptions{
 		HttpClient: httpClient,
-		AppID:      "YOUR-API-KEY",
+
+		// Either pass AppID like below,
+		// or don't and NewClient will attempt to load the env var itself.
+		AppID: os.Getenv("OWM_API_KEY"),
 
 		// By default, OpenWeatherMap API returns Kelvin for temperature,
 		// which is not very common for everyday applications.
