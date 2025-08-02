@@ -44,17 +44,23 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Printf("The temperature at %v is %v but feels like %v", resp.Current.Dt.Format(time.Kitchen), resp.Current.Temp, resp.Current.FeelsLike)
+	fmt.Printf("The temperature at %v is %v but feels like %v\n", resp.Current.Dt.Format(time.Kitchen), resp.Current.Temp, resp.Current.FeelsLike)
 
 	now := time.Now()
 	var overmorrow onecall.DailyResponse
-
+	overmorrowFound := false
 	for _, d := range resp.Daily {
 		if d.Dt.YearDay() == now.YearDay()+1 {
 			overmorrow = d
+			overmorrowFound = true
+			break
 		}
 	}
-	fmt.Printf("The weather the day after tomorrow will be '%v' with a max temp of %v", overmorrow.Summary, overmorrow.Temp.Max)
+	if overmorrowFound {
+		fmt.Printf("The weather the day after tomorrow will be '%v' with a max temp of %v\n", overmorrow.Summary, overmorrow.Temp.Max)
+	} else {
+		fmt.Println("The forecast did not include the weather for the day after tomorrow.")
+	}
 }
 
 type ratelimitedTransport struct {

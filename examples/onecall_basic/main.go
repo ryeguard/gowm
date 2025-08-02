@@ -24,5 +24,5 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Printf("The temperature at %v is %v but feels like %v", resp.Current.Dt.Format(time.Kitchen), resp.Current.Temp, resp.Current.FeelsLike)
+	fmt.Printf("The temperature at %v is %v but feels like %v\n", resp.Current.Dt.Format(time.Kitchen), resp.Current.Temp, resp.Current.FeelsLike)
 }
