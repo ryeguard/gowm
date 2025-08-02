@@ -74,8 +74,8 @@ const (
 
 	// Group 80x: Clouds
 
-	fewClouds       // 801,Clouds,"few clouds: 11-25%",02d
-	scatteredClouds // 802,Clouds,"scattered clouds: 25-50%",03d
-	brokenClouds    // 803,Clouds,"broken clouds: 51-84%",04d
-	overcastClouds  // 804,Clouds,"overcast clouds: 85-100%",04d
+	fewClouds       // 801,Clouds,"few clouds",02d
+	scatteredClouds // 802,Clouds,"scattered clouds",03d
+	brokenClouds    // 803,Clouds,"broken clouds",04d
+	overcastClouds  // 804,Clouds,"overcast clouds",04d
 )
