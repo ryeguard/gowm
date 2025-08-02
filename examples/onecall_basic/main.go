@@ -5,12 +5,12 @@ import (
 	"time"
 
 	"github.com/ryeguard/gowm/onecall"
+
+	_ "github.com/joho/godotenv/autoload" // auto-loads .env file
 )
 
 func main() {
 	client, err := onecall.NewClient(&onecall.ClientOptions{
-		AppID: "YOUR-API-KEY",
-
 		// By default, OpenWeatherMap API returns Kelvin for temperature,
 		// which is not very common for everyday applications.
 		Units: onecall.Units.METRIC,

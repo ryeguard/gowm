@@ -26,7 +26,7 @@ func main() {
 		log.Fatalf("geo Direct: %v", err)
 	}
 
-	fmt.Printf("%v, %v is located at %v,%v", geo.Data[0].Name, geo.Data[0].Country, geo.Data[0].Lat, geo.Data[0].Lon)
+	fmt.Printf("%v (%v) is located at %.4f,%.4f\n", geo.Data[0].Name, geo.Data[0].Country, geo.Data[0].Lat, geo.Data[0].Lon)
 
 	oc, err := client.OneCall.OneCall(59.3327, 18.0656, nil)
 	if err != nil {
