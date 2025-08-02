@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/ryeguard/gowm/onecall"
@@ -9,21 +10,26 @@ import (
 )
 
 func main() {
-	client, err := owm.NewClient(&onecall.ClientOptions{
-		AppID: "YOUR-API-KEY",
+	client := owm.
+		NewClient(&owm.ClientOptions{AppID: "YOUR-API-KEY"}).
+		WithOneCall(&onecall.ClientOptions{
+			// By default, OpenWeatherMap API returns Kelvin for temperature,
+			// which is not very common for everyday applications.
+			Units: onecall.Units.METRIC,
+		}).
+		WithGeo(nil)
 
-		// By default, OpenWeatherMap API returns Kelvin for temperature,
-		// which is not very common for everyday applications.
-		Units: onecall.Units.METRIC,
-	})
+	geo, err := client.Geo.Direct("Stockholm,SE", nil)
 	if err != nil {
-		panic(err)
+		log.Fatalf("geo Direct: %v", err)
 	}
 
-	resp, err := client.OneCall(59.3327, 18.0656, nil)
+	fmt.Printf("%v, %v is located at %v,%v", geo.Data[0].Name, geo.Data[0].Country, geo.Data[0].Lat, geo.Data[0].Lon)
+
+	oc, err := client.OneCall.OneCall(59.3327, 18.0656, nil)
 	if err != nil {
-		panic(err)
+		log.Fatalf("onecall OneCall: %v", err)
 	}
 
-	fmt.Printf("The temperature at %v is %v but feels like %v\n", resp.Current.Dt.Format(time.Kitchen), resp.Current.Temp, resp.Current.FeelsLike)
+	fmt.Printf("The temperature at %v is %v but feels like %v\n", oc.Current.Dt.Format(time.Kitchen), oc.Current.Temp, oc.Current.FeelsLike)
 }
