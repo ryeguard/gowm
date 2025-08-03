@@ -33,7 +33,7 @@ type ClientOptions struct {
 	Logger     *slog.Logger
 }
 
-func NewClient(opts *ClientOptions) (*Client, error) {
+func NewClient(opts *ClientOptions) *Client {
 
 	// Defaults if opts are not provided
 	if opts == nil {
@@ -60,7 +60,7 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 		appID:      opts.AppID,
 		httpClient: opts.HttpClient,
 		logger:     opts.Logger,
-	}, nil
+	}
 }
 
 type GeoOptions struct {

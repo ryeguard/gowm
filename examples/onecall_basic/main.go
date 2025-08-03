@@ -10,14 +10,11 @@ import (
 )
 
 func main() {
-	client, err := onecall.NewClient(&onecall.ClientOptions{
+	client := onecall.NewClient(&onecall.ClientOptions{
 		// By default, OpenWeatherMap API returns Kelvin for temperature,
 		// which is not very common for everyday applications.
 		Units: onecall.Units.METRIC,
 	})
-	if err != nil {
-		panic(err)
-	}
 
 	resp, err := client.OneCall(59.3327, 18.0656, nil)
 	if err != nil {

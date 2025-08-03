@@ -70,12 +70,7 @@ func (c *Client) WithOneCall(opts *onecall.ClientOptions) *Client {
 		opts.Logger = c.logger
 	}
 
-	oc, err := onecall.NewClient(opts)
-	if err != nil {
-		c.logger.Error("unable to create onecall client", "error", err)
-		panic(err)
-	}
-	c.OneCall = oc
+	c.OneCall = onecall.NewClient(opts)
 	return c
 }
 
@@ -95,12 +90,7 @@ func (c *Client) WithGeo(opts *geo.ClientOptions) *Client {
 		opts.Logger = c.logger
 	}
 
-	geo, err := geo.NewClient(opts)
-	if err != nil {
-		c.logger.Error("unable to create geo client", "error", err)
-		panic(err)
-	}
-	c.Geo = geo
+	c.Geo = geo.NewClient(opts)
 	return c
 }
 

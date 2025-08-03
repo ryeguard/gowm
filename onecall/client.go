@@ -37,7 +37,7 @@ type ClientOptions struct {
 	Units      Unit   // Units to use for the client. Overruled by unit option explicitly passed to client calls.
 }
 
-func NewClient(opts *ClientOptions) (*Client, error) {
+func NewClient(opts *ClientOptions) *Client {
 	if opts == nil {
 		opts = &ClientOptions{}
 	}
@@ -66,7 +66,7 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 	if opts.Units.IsValid() {
 		client.unit = opts.Units
 	}
-	return client, nil
+	return client
 }
 
 type OneCallOptions struct {

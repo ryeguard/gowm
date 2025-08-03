@@ -7,11 +7,10 @@ import (
 )
 
 func TestNewClient(t *testing.T) {
-	client, err := NewClient(&ClientOptions{
+	client := NewClient(&ClientOptions{
 		AppID: "TEST",
 		Units: Units.METRIC,
 	})
-	require.NoError(t, err)
-	_, err = client.OneCall(0, 0, nil)
+	_, err := client.OneCall(0, 0, nil)
 	require.Error(t, err) // 401 Unauthorized
 }

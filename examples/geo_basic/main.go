@@ -10,10 +10,7 @@ import (
 )
 
 func main() {
-	client, err := geo.NewClient(nil)
-	if err != nil {
-		log.Fatalf("new client: %v", err)
-	}
+	client := geo.NewClient(nil)
 
 	resp, err := client.Direct("Stockholm,SE", nil)
 	if err != nil {

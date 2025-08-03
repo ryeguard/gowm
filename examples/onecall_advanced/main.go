@@ -26,7 +26,7 @@ func main() {
 		Transport: newRateLimitedTransport(rate.Every(time.Second), 1, nil),
 	}
 
-	client, err := onecall.NewClient(&onecall.ClientOptions{
+	client := onecall.NewClient(&onecall.ClientOptions{
 		HttpClient: httpClient,
 
 		// Either pass AppID like below,
@@ -37,9 +37,7 @@ func main() {
 		// which is not very common for everyday applications.
 		Units: onecall.Units.METRIC,
 	})
-	if err != nil {
-		panic(err)
-	}
+
 	resp, err := client.OneCall(59.3327, 18.0656, &onecall.OneCallOptions{
 		// If we only want CURRENT and DAILY for our location we can exclude the other forecasts.
 		Exclude: []onecall.Exclude{onecall.Excludes.HOURLY, onecall.Excludes.MINUTELY, onecall.Excludes.ALERTS},
