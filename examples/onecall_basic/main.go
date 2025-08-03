@@ -16,7 +16,7 @@ func main() {
 		Units: onecall.Units.METRIC,
 	})
 
-	resp, err := client.OneCall(59.3327, 18.0656, nil)
+	resp, err := client.CurrentAndForecast(59.3327, 18.0656, nil)
 	if err != nil {
 		panic(err)
 	}

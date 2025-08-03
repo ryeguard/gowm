@@ -114,7 +114,7 @@ func (c *Client) GetWeather(query string, opts *onecall.OneCallOptions) (*GeoDir
 		return nil, fmt.Errorf("no result matching '%v'", query)
 	}
 
-	onecall, err := c.OneCall.OneCall(geo.Data[0].Lat, geo.Data[0].Lon, opts)
+	onecall, err := c.OneCall.CurrentAndForecast(geo.Data[0].Lat, geo.Data[0].Lon, opts)
 	if err != nil {
 		return nil, fmt.Errorf("onecall: %w", err)
 	}

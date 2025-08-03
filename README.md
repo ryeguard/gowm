@@ -25,7 +25,17 @@ go run examples/owm_basic/main.go
 
 ### One Call API 3.0
 
-The [One Call API 3.0](https://openweathermap.org/api/one-call-3) client is implemented in [`onecall/client.go`](./onecall/client.go)
+The [One Call API 3.0](https://openweathermap.org/api/one-call-3) client is implemented in [`onecall/client.go`](./onecall/client.go). The available methods are:
+
+- `CurrentAndForecast`: To get access to current weather, minute forecast for 1 hour, hourly forecast for 48 hours, daily forecast for 8 days and government weather alerts.
+  - `CurrentAndForecastRaw` is available and returns a direct mapping of the API response, e.g., not parsing timestamps to `time.Time` but rather leaving them as `int`s.
+
+### Geocoding API
+
+The [Geocoding API](https://openweathermap.org/api/geocoding-api) client is implemented in [`geo/client.go`](./geo/client.go). The available methods are:
+
+- `Direct`: Allows you to get geographical coordinates (lat, lon) by using name of the location (city name or area name).
+- `Reverse`: Allows you to get name of the location (city name or area name) by using geographical coordinates (lat, lon).
 
 ## Contributing
 

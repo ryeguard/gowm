@@ -11,6 +11,6 @@ func TestNewClient(t *testing.T) {
 		AppID: "TEST",
 		Units: Units.METRIC,
 	})
-	_, err := client.OneCall(0, 0, nil)
+	_, err := client.CurrentAndForecast(0, 0, nil)
 	require.Error(t, err) // 401 Unauthorized
 }

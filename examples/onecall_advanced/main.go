@@ -38,7 +38,7 @@ func main() {
 		Units: onecall.Units.METRIC,
 	})
 
-	resp, err := client.OneCall(59.3327, 18.0656, &onecall.OneCallOptions{
+	resp, err := client.CurrentAndForecast(59.3327, 18.0656, &onecall.OneCallOptions{
 		// If we only want CURRENT and DAILY for our location we can exclude the other forecasts.
 		Exclude: []onecall.Exclude{onecall.Excludes.HOURLY, onecall.Excludes.MINUTELY, onecall.Excludes.ALERTS},
 

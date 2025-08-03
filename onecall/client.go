@@ -75,7 +75,7 @@ type OneCallOptions struct {
 	Lang    Lang
 }
 
-func (c *Client) OneCallRaw(lat, lon float64, opts *OneCallOptions) (*OneCallResponseRaw, error) {
+func (c *Client) CurrentAndForecastRaw(lat, lon float64, opts *OneCallOptions) (*OneCallResponseRaw, error) {
 	if lat < -90 || lat > 90 {
 		return nil, fmt.Errorf("lat argument must be in range (-90; 90), is %v", lat)
 	}
@@ -144,8 +144,8 @@ func (c *Client) OneCallRaw(lat, lon float64, opts *OneCallOptions) (*OneCallRes
 	return &oneCallResp, nil
 }
 
-func (c *Client) OneCall(lat, lon float64, opts *OneCallOptions) (*OneCallResponse, error) {
-	raw, err := c.OneCallRaw(lat, lon, opts)
+func (c *Client) CurrentAndForecast(lat, lon float64, opts *OneCallOptions) (*OneCallResponse, error) {
+	raw, err := c.CurrentAndForecastRaw(lat, lon, opts)
 	if err != nil {
 		return nil, err
 	}
