@@ -75,17 +75,17 @@ type OneCallOptions struct {
 	Lang    Lang
 }
 
-func (c *Client) OneCallRaw(lat, lon float64, opts *OneCallOptions) (*OneCallResponseRaw, error) {
+func (c *Client) OneCallRaw(lat, lon float64, opts *OneCallOptions) (*OneCallResponseRaw, *Unit, error) {
 	if lat < -90 || lat > 90 {
-		return nil, fmt.Errorf("lat argument must be in range (-90; 90), is %v", lat)
+		return nil, nil, fmt.Errorf("lat argument must be in range (-90; 90), is %v", lat)
 	}
 	if lon < -180 || lon > 180 {
-		return nil, fmt.Errorf("lon argument must be in range (-180; 180), is %v", lon)
+		return nil, nil, fmt.Errorf("lon argument must be in range (-180; 180), is %v", lon)
 	}
 
 	u, err := url.Parse(c.baseURL)
 	if err != nil {
-		return nil, fmt.Errorf("parse url: %w", err)
+		return nil, nil, fmt.Errorf("parse url: %w", err)
 	}
 
 	q := u.Query()
@@ -97,9 +97,12 @@ func (c *Client) OneCallRaw(lat, lon float64, opts *OneCallOptions) (*OneCallRes
 		q.Set(excludeParam, ExcludeList(opts.Exclude).String())
 	}
 
+	var units *Unit
 	if opts != nil && opts.Units.IsValid() {
+		units = &opts.Units
 		q.Set(unitsParam, opts.Units.String())
 	} else if c.unit.IsValid() {
+		units = &c.unit
 		q.Set(unitsParam, c.unit.String())
 	}
 
@@ -111,44 +114,44 @@ func (c *Client) OneCallRaw(lat, lon float64, opts *OneCallOptions) (*OneCallRes
 
 	resp, err := c.httpClient.Get(u.String())
 	if err != nil {
-		return nil, fmt.Errorf("get: %w", err)
+		return nil, nil, fmt.Errorf("get: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status: %s", resp.Status)
+		return nil, nil, fmt.Errorf("unexpected status: %s", resp.Status)
 	}
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %w", err)
+		return nil, nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	// Save response body to a file
 	f, err := os.Create("response.json")
 	if err != nil {
-		return nil, fmt.Errorf("failed to create file: %w", err)
+		return nil, nil, fmt.Errorf("failed to create file: %w", err)
 	}
 	defer f.Close()
 
 	_, err = f.Write(bodyBytes)
 	if err != nil {
-		return nil, fmt.Errorf("failed to write to file: %w", err)
+		return nil, nil, fmt.Errorf("failed to write to file: %w", err)
 	}
 
 	var oneCallResp OneCallResponseRaw
 	if err := json.Unmarshal(bodyBytes, &oneCallResp); err != nil {
-		return nil, fmt.Errorf("failed to decode one call response JSON: %w", err)
+		return nil, nil, fmt.Errorf("failed to decode one call response JSON: %w", err)
 	}
 
-	return &oneCallResp, nil
+	return &oneCallResp, units, nil
 }
 
 func (c *Client) OneCall(lat, lon float64, opts *OneCallOptions) (*OneCallResponse, error) {
-	raw, err := c.OneCallRaw(lat, lon, opts)
+	raw, units, err := c.OneCallRaw(lat, lon, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	return raw.Parse(), nil
+	return raw.Parse(units), nil
 }

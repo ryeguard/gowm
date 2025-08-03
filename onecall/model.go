@@ -40,12 +40,12 @@ func (w weathersRaw) convert() []WeatherCondition {
 	return out
 }
 
-func (r OneCallResponseRaw) Parse() *OneCallResponse {
+func (r OneCallResponseRaw) Parse(units *Unit) *OneCallResponse {
 	return &OneCallResponse{
 		oneCallResponseCommon: r.oneCallResponseCommon,
 		Current:               *r.Current.Parse(),
 		Minutely:              minuteResponsesRaw(r.Minutely).Parse(),
-		Daily:                 dailyResponsesRaw(r.Daily).Parse(),
+		Daily:                 dailyResponsesRaw(r.Daily).Parse(units),
 	}
 }
 
@@ -54,6 +54,6 @@ func (p OneCallResponse) convert() *OneCallResponseRaw {
 		oneCallResponseCommon: p.oneCallResponseCommon,
 		Current:               p.Current.Parse(),
 		Minutely:              minuteResponses(p.Minutely).convert(),
-		Daily:                 dailyResponses(p.Daily).parse(),
+		Daily:                 dailyResponses(p.Daily).convert(),
 	}
 }
