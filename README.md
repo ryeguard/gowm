@@ -37,6 +37,50 @@ The [Geocoding API](https://openweathermap.org/api/geocoding-api) client is impl
 - `Direct`: Allows you to get geographical coordinates (lat, lon) by using name of the location (city name or area name).
 - `Reverse`: Allows you to get name of the location (city name or area name) by using geographical coordinates (lat, lon).
 
+## Features
+
+### Static Types
+
+Leveraging Go's type system, as well as generating better go enums using [`zarldev/goenums`](https://github.com/zarldev/goenums), using the clients is straight-forward. You don't need to worry about guessing the input format of the API calls, of for example languages and units. Rather than:
+
+```go
+// from briandowns/openweathermap (another great OpenWeatherMap Go client and the inspiration for this project)
+w, err := owm.NewOneCall("F", "EN", apiKey, []string{})
+if err != nil {
+  log.Fatalln(err)
+}
+
+err = w.OneCallByCoordinates(
+  &Coordinates{
+    Latitude:  33.45,
+    Longitude: -112.07,
+  },
+)
+if err != nil {
+  t.Error(err)
+}
+```
+
+We can instead do:
+
+```go
+client := onecall.NewClient(&onecall.ClientOptions{
+  AppID: apiKey
+  Units: onecall.Units.IMPERIAL,
+})
+
+resp, err := client.CurrentAndForecast(33.45, -112.07, &onecall.OneCallOptions{
+  Lang: onecall.Langs.ENGLISH,
+})
+if err != nil {
+  log.Fatalln(err)
+}
+```
+
+### Custom `http.Client`s and `slog.Logger`s
+
+You can pass custom HTTP clients and loggers to the API Client to make the most of Go's std lib features like rate limiting and structured logging with configurable logging levels.
+
 ## Contributing
 
 Contributions are welcome.
