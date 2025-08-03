@@ -1,5 +1,9 @@
 # gowm
 
+![Go Version](https://img.shields.io/github/go-mod/go-version/ryeguard/gowm)
+![License](https://img.shields.io/github/license/ryeguard/gowm)
+![Build Status](https://img.shields.io/github/actions/workflow/status/ryeguard/gowm/test.yml?branch=main)
+
 A Go [OpenWeatherMap API](https://openweathermap.org/api) client.
 
 ## Getting Started
