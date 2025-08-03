@@ -4,7 +4,7 @@
 ![License](https://img.shields.io/github/license/ryeguard/gowm)
 ![Build Status](https://img.shields.io/github/actions/workflow/status/ryeguard/gowm/test.yml?branch=main)
 
-A Go [OpenWeatherMap API](https://openweathermap.org/api) client.
+A Go [OpenWeatherMap API](https://openweathermap.org/api) client. The latest Go docs may be browsed at [pkg.go.dev](https://pkg.go.dev/github.com/ryeguard/gowm).
 
 ## Getting Started
 
@@ -94,3 +94,9 @@ Contributions are welcome.
 This library is an unofficial Go client for the OpenWeather API. It is not affiliated with or endorsed by OpenWeather. See the license at [LICENSE](./LICENSE).
 
 Use of this client requires a valid API key from [OpenWeather](https://openweathermap.org/), and use of OpenWeather data is subject to their [license terms](https://openweathermap.org/price). Please ensure you comply with their data licensing conditions, particularly around attribution and share-alike requirements.
+
+## Links
+
+- [ryeguard/gowm Go docs](https://pkg.go.dev/github.com/ryeguard/gowm)
+- [OpenWeatherMap API](https://openweathermap.org/api)
+- [zarldev/goenums project](https://github.com/zarldev/goenums) used for generating type-safe enums.
