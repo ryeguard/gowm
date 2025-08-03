@@ -1,6 +1,7 @@
 package owm
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -101,4 +102,35 @@ func (c *Client) WithGeo(opts *geo.ClientOptions) *Client {
 	}
 	c.Geo = geo
 	return c
+}
+
+type GeoDirectOneCallResponse struct {
+	GeoDirect *geo.DirectData
+	OneCall   *onecall.OneCallResponse
+}
+
+// GetWeather is an opinionated convenience function that first performs geocoding and then gets the One Call forecast.
+func (c *Client) GetWeather(query string, opts *onecall.OneCallOptions) (*GeoDirectOneCallResponse, error) {
+	if c.OneCall == nil || c.Geo == nil {
+		return nil, fmt.Errorf("both onecall and geo clients are needed")
+	}
+
+	geo, err := c.Geo.Direct(query, &geo.GeoOptions{Limit: 1})
+	if err != nil {
+		return nil, fmt.Errorf("geo: %w", err)
+	}
+
+	if len(geo.Data) == 0 {
+		return nil, fmt.Errorf("no result matching '%v'", query)
+	}
+
+	onecall, err := c.OneCall.OneCall(geo.Data[0].Lat, geo.Data[0].Lon, opts)
+	if err != nil {
+		return nil, fmt.Errorf("onecall: %w", err)
+	}
+
+	return &GeoDirectOneCallResponse{
+		GeoDirect: &geo.Data[0],
+		OneCall:   onecall,
+	}, nil
 }
