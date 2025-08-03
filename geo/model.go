@@ -1,10 +1,10 @@
 package geo
 
-type DirectResponse struct {
-	Data []DirectData
+type GeoResponse struct {
+	Data []GeoData
 }
 
-type DirectData struct {
+type GeoData struct {
 	Name    string  `json:"name"`    // Name of the found location
 	Lat     float64 `json:"lat"`     // Geographical coordinates of the found location (latitude)
 	Lon     float64 `json:"lon"`     // Geographical coordinates of the found location (longitude)

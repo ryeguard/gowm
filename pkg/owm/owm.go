@@ -95,7 +95,7 @@ func (c *Client) WithGeo(opts *geo.ClientOptions) *Client {
 }
 
 type GeoDirectOneCallResponse struct {
-	GeoDirect *geo.DirectData
+	GeoDirect *geo.GeoData
 	OneCall   *onecall.OneCallResponse
 }
 
