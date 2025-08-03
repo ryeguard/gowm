@@ -43,7 +43,7 @@ func TestParse(t *testing.T) {
 			},
 		},
 	}
-	parsedAndConverted := raw.Parse().convert()
+	parsedAndConverted := raw.Parse(nil).convert()
 	require.NotNil(t, parsedAndConverted)
 	require.Equal(t, *parsedAndConverted, raw)
 }
@@ -56,7 +56,7 @@ func TestParseTestData(t *testing.T) {
 	var raw OneCallResponseRaw
 	json.NewDecoder(bytes.NewBuffer(b)).Decode(&raw)
 
-	parsedAndConverted := raw.Parse()
+	parsedAndConverted := raw.Parse(nil)
 
 	require.NotNil(t, parsedAndConverted)
 	require.Equal(t, *parsedAndConverted.convert(), raw)
