@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/ryeguard/gowm/internal"
 )
@@ -151,4 +152,74 @@ func (c *Client) CurrentAndForecast(lat, lon float64, opts *OneCallOptions) (*On
 	}
 
 	return raw.Parse(), nil
+}
+
+// TimeMachine returns weather data for any timestamp from 1st January 1979 till 4 days ahead forecast.
+func (c *Client) TimeMachineRaw(lat, lon float64, timestamp time.Time, opts *OneCallOptions) (*TimeMachineResponseRaw, error) {
+	if lat < -90 || lat > 90 {
+		return nil, fmt.Errorf("lat argument must be in range (-90; 90), is %v", lat)
+	}
+	if lon < -180 || lon > 180 {
+		return nil, fmt.Errorf("lon argument must be in range (-180; 180), is %v", lon)
+	}
+
+	u, err := url.Parse(c.baseURL + "/timemachine")
+	if err != nil {
+		return nil, fmt.Errorf("parse url: %w", err)
+	}
+
+	q := u.Query()
+	q.Set(latParam, fmt.Sprintf("%f", lat))
+	q.Set(lonParam, fmt.Sprintf("%f", lon))
+	q.Set(appIDParam, c.appID)
+
+	if opts != nil && len(opts.Exclude) > 0 {
+		q.Set(excludeParam, ExcludeList(opts.Exclude).String())
+	}
+
+	if opts != nil && opts.Units.IsValid() {
+		q.Set(unitsParam, opts.Units.String())
+	} else if c.unit.IsValid() {
+		q.Set(unitsParam, c.unit.String())
+	}
+
+	if opts != nil && opts.Lang.IsValid() {
+		q.Set(langParam, opts.Lang.String())
+	}
+
+	u.RawQuery = q.Encode()
+
+	resp, err := c.httpClient.Get(u.String())
+	if err != nil {
+		return nil, fmt.Errorf("get: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status: %s", resp.Status)
+	}
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	// Save response body to a file
+	f, err := os.Create("response.json")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create file: %w", err)
+	}
+	defer f.Close()
+
+	_, err = f.Write(bodyBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to write to file: %w", err)
+	}
+
+	var timeMachineResponse TimeMachineResponseRaw
+	if err := json.Unmarshal(bodyBytes, &timeMachineResponse); err != nil {
+		return nil, fmt.Errorf("failed to decode one call response JSON: %w", err)
+	}
+
+	return &timeMachineResponse, nil
 }
