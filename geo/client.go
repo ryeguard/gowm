@@ -66,7 +66,8 @@ func NewClient(opts *ClientOptions) *Client {
 }
 
 type GeoOptions struct {
-	Limit int // Number of the locations in the API response.
+	Limit      int // Number of the locations in the API response.
+	SaveAsJson string
 }
 
 // Direct returns coordinates by location name
@@ -109,16 +110,17 @@ func (c *Client) Direct(query string, opts *GeoOptions) (*GeoResponse, error) {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	// Save response body to a file
-	f, err := os.Create("response.json")
-	if err != nil {
-		return nil, fmt.Errorf("failed to create file: %w", err)
-	}
-	defer f.Close()
+	if opts.SaveAsJson != "" {
+		f, err := os.Create(opts.SaveAsJson)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create file: %w", err)
+		}
+		defer f.Close()
 
-	_, err = f.Write(bodyBytes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to write to file: %w", err)
+		_, err = f.Write(bodyBytes)
+		if err != nil {
+			return nil, fmt.Errorf("failed to write to file: %w", err)
+		}
 	}
 
 	var geoResp GeoResponse
@@ -173,16 +175,17 @@ func (c *Client) Reverse(lat, lon float64, opts *GeoOptions) (*GeoResponse, erro
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	// Save response body to a file
-	f, err := os.Create("response.json")
-	if err != nil {
-		return nil, fmt.Errorf("failed to create file: %w", err)
-	}
-	defer f.Close()
+	if opts.SaveAsJson != "" {
+		f, err := os.Create(opts.SaveAsJson)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create file: %w", err)
+		}
+		defer f.Close()
 
-	_, err = f.Write(bodyBytes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to write to file: %w", err)
+		_, err = f.Write(bodyBytes)
+		if err != nil {
+			return nil, fmt.Errorf("failed to write to file: %w", err)
+		}
 	}
 
 	var geoResp GeoResponse

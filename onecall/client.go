@@ -70,9 +70,10 @@ func NewClient(opts *ClientOptions) *Client {
 }
 
 type OneCallOptions struct {
-	Exclude []Exclude
-	Units   Unit
-	Lang    Lang
+	Exclude    []Exclude
+	Units      Unit
+	Lang       Lang
+	SaveAsJson string
 }
 
 func (c *Client) CurrentAndForecastRaw(lat, lon float64, opts *OneCallOptions) (*OneCallResponseRaw, error) {
@@ -124,16 +125,17 @@ func (c *Client) CurrentAndForecastRaw(lat, lon float64, opts *OneCallOptions) (
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	// Save response body to a file
-	f, err := os.Create("response.json")
-	if err != nil {
-		return nil, fmt.Errorf("failed to create file: %w", err)
-	}
-	defer f.Close()
+	if opts.SaveAsJson != "" {
+		f, err := os.Create(opts.SaveAsJson)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create file: %w", err)
+		}
+		defer f.Close()
 
-	_, err = f.Write(bodyBytes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to write to file: %w", err)
+		_, err = f.Write(bodyBytes)
+		if err != nil {
+			return nil, fmt.Errorf("failed to write to file: %w", err)
+		}
 	}
 
 	var oneCallResp OneCallResponseRaw
