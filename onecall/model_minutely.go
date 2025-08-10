@@ -4,15 +4,14 @@ import "time"
 
 // Minute forecast weather data API response
 type MinuteResponseRaw struct {
-	Dt            int64 `json:"dt"`            // Time of the forecasted data, unix, UTC
-	Precipitation int64 `json:"precipitation"` // Precipitation, mm/h. Please note that only mm/h as units of measurement are available for this parameter
+	Dt            int64   `json:"dt"`            // Time of the forecasted data, unix, UTC
+	Precipitation float64 `json:"precipitation"` // Precipitation, mm/h. Please note that only mm/h as units of measurement are available for this parameter
 }
 
 // Minute forecast weather data API response
 type MinuteResponse struct {
 	Dt            time.Time `json:"dt"`            // Time of the forecasted data
-	Precipitation int64     `json:"precipitation"` // Precipitation, mm/h. Please note that only mm/h as units of measurement are available for this parameter
-
+	Precipitation float64   `json:"precipitation"` // Precipitation, mm/h. Please note that only mm/h as units of measurement are available for this parameter
 }
 
 type minuteResponsesRaw []MinuteResponseRaw
