@@ -105,7 +105,7 @@ func (r OneCallResponseRaw) Parse() *OneCallResponse {
 func (p OneCallResponse) convert() *OneCallResponseRaw {
 	return &OneCallResponseRaw{
 		oneCallResponseCommon: p.oneCallResponseCommon,
-		Current:               p.Current.Parse(),
+		Current:               p.Current.convert(),
 		Minutely:              minuteResponses(p.Minutely).convert(),
 		Hourly:                hourlyResponses(p.Hourly).convert(),
 		Daily:                 dailyResponses(p.Daily).convert(),

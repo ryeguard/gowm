@@ -35,12 +35,6 @@ type currentResponseCommon struct {
 
 	// Wind direction, degrees (meteorological)
 	WindDeg int `json:"wind_deg"`
-
-	// (where available) Precipitation volume, mm. Please note that only mm as units of measurement are available for this parameter
-	Rain *RainRaw `json:"rain,omitempty"`
-
-	// (where available) Snow volume, mm. Please note that only mm as units of measurement are available for this parameter
-	Snow *SnowRaw `json:"snow,omitempty"`
 }
 
 // Current weather data API response
@@ -55,6 +49,12 @@ type CurrentResponseRaw struct {
 
 	// Sunset time, Unix, UTC. For polar areas in midnight sun and polar night periods this parameter is not returned in the response
 	Sunset int64 `json:"sunset"`
+
+	// (where available) Precipitation volume, mm. Please note that only mm as units of measurement are available for this parameter
+	Rain *RainRaw `json:"rain,omitempty"`
+
+	// (where available) Snow volume, mm. Please note that only mm as units of measurement are available for this parameter
+	Snow *SnowRaw `json:"snow,omitempty"`
 
 	Weather []WeatherRaw `json:"weather"`
 }
@@ -73,6 +73,12 @@ type CurrentResponse struct {
 	// Use time.IsZero() to distinguish if a value was returned or not.
 	Sunset time.Time
 
+	// (where available) Precipitation volume, mm. Please note that only mm as units of measurement are available for this parameter
+	Rain1H *float64
+
+	// (where available) Snow volume, mm. Please note that only mm as units of measurement are available for this parameter
+	Snow1H *float64
+
 	Weather []Weather
 }
 
@@ -82,16 +88,20 @@ func (c *CurrentResponseRaw) Parse() *CurrentResponse {
 		Dt:                    time.Unix(c.Dt, 0),
 		Sunrise:               time.Unix(c.Sunrise, 0),
 		Sunset:                time.Unix(c.Sunset, 0),
+		Rain1H:                c.Rain.Parse(),
+		Snow1H:                c.Snow.Parse(),
 		Weather:               weathersRaw(c.Weather).convert(),
 	}
 }
 
-func (c CurrentResponse) Parse() CurrentResponseRaw {
+func (c CurrentResponse) convert() CurrentResponseRaw {
 	return CurrentResponseRaw{
 		currentResponseCommon: c.currentResponseCommon,
 		Dt:                    c.Dt.Unix(),
 		Sunrise:               c.Sunrise.Unix(),
 		Sunset:                c.Sunset.Unix(),
+		Rain:                  convertToRain(c.Rain1H),
+		Snow:                  convertToSnow(c.Snow1H),
 		Weather:               weathers(c.Weather).convert(),
 	}
 }
