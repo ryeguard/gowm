@@ -3,18 +3,18 @@ package onecall
 import "time"
 
 type hourlyResponseCommons struct {
-	Temp       Temp      `json:"temp"`       // Units – default: kelvin, metric: Celsius, imperial: Fahrenheit.
-	FeelsLike  FeelsLike `json:"feels_like"` // This accounts for the human perception of weather. Units – default: kelvin, metric: Celsius, imperial: Fahrenheit.
-	Pressure   int       `json:"pressure"`   // Atmospheric pressure on the sea level, hPa
-	Humidity   int       `json:"humidity"`   // Humidity, %
-	DewPoint   float64   `json:"dew_point"`  // Atmospheric temperature (varying according to pressure and humidity) below which water droplets begin to condense and dew can form. Units – default: kelvin, metric: Celsius, imperial: Fahrenheit.
-	UVI        float64   `json:"uvi"`        // The maximum value of UV index for the day
-	Clouds     int       `json:"clouds"`     // Cloudiness, %
-	Visibility int       `json:"visibility"`
-	WindSpeed  float64   `json:"wind_speed"` // Wind speed. Units – default: metre/sec, metric: metre/sec, imperial: miles/hour.
-	WindGust   *float64  `json:"wind_gust"`  // (where available) Wind gust. Units – default: metre/sec, metric: metre/sec, imperial: miles/hour.
-	WindDeg    int       `json:"wind_deg"`   //  Wind direction, degrees (meteorological)
-	Pop        float64   `json:"pop"`        // Probability of precipitation. The values of the parameter vary between 0 and 1, where 0 is equal to 0%, 1 is equal to 100%
+	Temp       float64  `json:"temp"`       // Units – default: kelvin, metric: Celsius, imperial: Fahrenheit.
+	FeelsLike  float64  `json:"feels_like"` // This accounts for the human perception of weather. Units – default: kelvin, metric: Celsius, imperial: Fahrenheit.
+	Pressure   int      `json:"pressure"`   // Atmospheric pressure on the sea level, hPa
+	Humidity   int      `json:"humidity"`   // Humidity, %
+	DewPoint   float64  `json:"dew_point"`  // Atmospheric temperature (varying according to pressure and humidity) below which water droplets begin to condense and dew can form. Units – default: kelvin, metric: Celsius, imperial: Fahrenheit.
+	UVI        float64  `json:"uvi"`        // The maximum value of UV index for the day
+	Clouds     int      `json:"clouds"`     // Cloudiness, %
+	Visibility int      `json:"visibility"`
+	WindSpeed  float64  `json:"wind_speed"` // Wind speed. Units – default: metre/sec, metric: metre/sec, imperial: miles/hour.
+	WindGust   *float64 `json:"wind_gust"`  // (where available) Wind gust. Units – default: metre/sec, metric: metre/sec, imperial: miles/hour.
+	WindDeg    int      `json:"wind_deg"`   //  Wind direction, degrees (meteorological)
+	Pop        float64  `json:"pop"`        // Probability of precipitation. The values of the parameter vary between 0 and 1, where 0 is equal to 0%, 1 is equal to 100%
 }
 
 type HourlyResponseRaw struct {
