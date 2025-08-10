@@ -16,6 +16,8 @@ type dailyResponseCommons struct {
 	Clouds    int       `json:"clouds"`     // Cloudiness, %
 	UVI       float64   `json:"uvi"`        // The maximum value of UV index for the day
 	Pop       float64   `json:"pop"`        // Probability of precipitation. The values of the parameter vary between 0 and 1, where 0 is equal to 0%, 1 is equal to 100%
+	Rain      *float64  `json:"rain"`       // (where available) Precipitation volume, mm. Please note that only mm as units of measurement are available for this parameter
+	Snow      *float64  `json:"snow"`       // (where available) Snow volume, mm. Please note that only mm as units of measurement are available for this parameter
 }
 
 type DailyResponseRaw struct {
@@ -55,14 +57,6 @@ type FeelsLike struct {
 	Eve   float64 `json:"eve"`   // Evening temperature.
 	Night float64 `json:"night"` // Night temperature.
 }
-
-// daily.rain (where available) Precipitation volume, mm. Please note that only mm as units of measurement are available for this parameter
-// daily.snow (where available) Snow volume, mm. Please note that only mm as units of measurement are available for this parameter
-// daily.weather
-// daily.weather.id Weather condition id
-// daily.weather.main Group of weather parameters (Rain, Snow etc.)
-// daily.weather.description Weather condition within the group (full list of weather conditions). Get the output in your language
-// daily.weather.icon Weather icon id.
 
 type dailyResponsesRaw []DailyResponseRaw
 type dailyResponses []DailyResponse

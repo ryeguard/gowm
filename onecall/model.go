@@ -11,7 +11,8 @@ type oneCallResponseCommon struct {
 type OneCallResponseRaw struct {
 	oneCallResponseCommon
 	Current  CurrentResponseRaw  `json:"current"`
-	Minutely []MinuteResponseRaw `json:"minutely"`
+	Minutely []MinuteResponseRaw `json:"minutely"` // (where available)
+	Hourly   []HourlyResponseRaw `json:"hourly"`
 	Daily    []DailyResponseRaw  `json:"daily"`
 }
 
@@ -20,7 +21,44 @@ type OneCallResponse struct {
 	oneCallResponseCommon
 	Current  CurrentResponse
 	Minutely []MinuteResponse
+	Hourly   []HourlyResponse
 	Daily    []DailyResponse
+}
+
+type RainRaw struct {
+	OneH float64 `json:"1h"`
+}
+
+type SnowRaw struct {
+	OneH float64 `json:"1h"`
+}
+
+func (r *RainRaw) Parse() *float64 {
+	if r == nil {
+		return nil
+	}
+	return &r.OneH
+}
+
+func convertToRain(v *float64) *RainRaw {
+	if v == nil {
+		return nil
+	}
+	return &RainRaw{OneH: *v}
+}
+
+func (s *SnowRaw) Parse() *float64 {
+	if s == nil {
+		return nil
+	}
+	return &s.OneH
+}
+
+func convertToSnow(v *float64) *SnowRaw {
+	if v == nil {
+		return nil
+	}
+	return &SnowRaw{OneH: *v}
 }
 
 type WeatherRaw struct {
@@ -59,6 +97,7 @@ func (r OneCallResponseRaw) Parse() *OneCallResponse {
 		oneCallResponseCommon: r.oneCallResponseCommon,
 		Current:               *r.Current.Parse(),
 		Minutely:              minuteResponsesRaw(r.Minutely).Parse(),
+		Hourly:                hourlyResponsesRaw(r.Hourly).Parse(),
 		Daily:                 dailyResponsesRaw(r.Daily).Parse(),
 	}
 }
@@ -68,6 +107,7 @@ func (p OneCallResponse) convert() *OneCallResponseRaw {
 		oneCallResponseCommon: p.oneCallResponseCommon,
 		Current:               p.Current.Parse(),
 		Minutely:              minuteResponses(p.Minutely).convert(),
+		Hourly:                hourlyResponses(p.Hourly).convert(),
 		Daily:                 dailyResponses(p.Daily).convert(),
 	}
 }

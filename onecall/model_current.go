@@ -35,6 +35,12 @@ type currentResponseCommon struct {
 
 	// Wind direction, degrees (meteorological)
 	WindDeg int `json:"wind_deg"`
+
+	// (where available) Precipitation volume, mm. Please note that only mm as units of measurement are available for this parameter
+	Rain *RainRaw `json:"rain,omitempty"`
+
+	// (where available) Snow volume, mm. Please note that only mm as units of measurement are available for this parameter
+	Snow *SnowRaw `json:"snow,omitempty"`
 }
 
 // Current weather data API response
