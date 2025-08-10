@@ -37,7 +37,7 @@ type DailyResponse struct {
 	Sunset   time.Time
 	Moonrise time.Time
 	Moonset  time.Time
-	Weather  []WeatherCondition
+	Weather  []Weather
 }
 
 type Temp struct {
@@ -83,7 +83,7 @@ func (r dailyResponsesRaw) Parse() []DailyResponse {
 	return out
 }
 
-func (r dailyResponses) parse() []DailyResponseRaw {
+func (r dailyResponses) convert() []DailyResponseRaw {
 	var out []DailyResponseRaw
 	for _, d := range r {
 		out = append(out, DailyResponseRaw{
@@ -93,7 +93,7 @@ func (r dailyResponses) parse() []DailyResponseRaw {
 			Sunset:               d.Sunset.Unix(),
 			Moonrise:             d.Moonrise.Unix(),
 			Moonset:              d.Moonset.Unix(),
-			Weather:              weatherConditions(d.Weather).convert(),
+			Weather:              weathers(d.Weather).convert(),
 		})
 	}
 	return out

@@ -32,10 +32,24 @@ type WeatherRaw struct {
 
 type weathersRaw []WeatherRaw
 
-func (w weathersRaw) convert() []WeatherCondition {
-	var out []WeatherCondition
+type Weather struct {
+	WeatherCondition
+	Icon string
+}
+
+func (w weathersRaw) convert() []Weather {
+	var out []Weather
 	for _, v := range w {
-		out = append(out, idToWeatherCondition[v.ID])
+		wc := idToWeatherCondition[v.ID]
+		out = append(out,
+			Weather{
+				Icon: v.Icon,
+				WeatherCondition: WeatherCondition{
+					Code:        wc.Code,
+					Group:       wc.Group,
+					Description: wc.Description,
+				}},
+		)
 	}
 	return out
 }
@@ -54,6 +68,6 @@ func (p OneCallResponse) convert() *OneCallResponseRaw {
 		oneCallResponseCommon: p.oneCallResponseCommon,
 		Current:               p.Current.Parse(),
 		Minutely:              minuteResponses(p.Minutely).convert(),
-		Daily:                 dailyResponses(p.Daily).parse(),
+		Daily:                 dailyResponses(p.Daily).convert(),
 	}
 }

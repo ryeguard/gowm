@@ -67,11 +67,10 @@ type CurrentResponse struct {
 	// Use time.IsZero() to distinguish if a value was returned or not.
 	Sunset time.Time
 
-	Weather []WeatherCondition
+	Weather []Weather
 }
 
 func (c *CurrentResponseRaw) Parse() *CurrentResponse {
-
 	return &CurrentResponse{
 		currentResponseCommon: c.currentResponseCommon,
 		Dt:                    time.Unix(c.Dt, 0),
@@ -87,6 +86,6 @@ func (c CurrentResponse) Parse() CurrentResponseRaw {
 		Dt:                    c.Dt.Unix(),
 		Sunrise:               c.Sunrise.Unix(),
 		Sunset:                c.Sunset.Unix(),
-		Weather:               weatherConditions(c.Weather).convert(),
+		Weather:               weathers(c.Weather).convert(),
 	}
 }

@@ -14,7 +14,7 @@ func (e ExcludeList) String() string {
 
 var idToWeatherCondition map[int64]WeatherCondition
 
-type weatherConditions []WeatherCondition
+type weathers []Weather
 
 func init() {
 	idToWeatherCondition = map[int64]WeatherCondition{}
@@ -23,7 +23,7 @@ func init() {
 	}
 }
 
-func (w weatherConditions) convert() []WeatherRaw {
+func (w weathers) convert() []WeatherRaw {
 	var out []WeatherRaw
 	for _, v := range w {
 		out = append(out, WeatherRaw{
