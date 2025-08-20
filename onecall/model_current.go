@@ -63,23 +63,23 @@ type CurrentResponse struct {
 	currentResponseCommon
 
 	// Current time
-	Dt time.Time
+	Dt time.Time `json:"dt"`
 
 	// Sunrise time. For polar areas in midnight sun and polar night periods this parameter is not returned in the response.
 	// Use time.IsZero() to distinguish if a value was returned or not.
-	Sunrise time.Time
+	Sunrise time.Time `json:"sunrise"`
 
 	// Sunset time. For polar areas in midnight sun and polar night periods this parameter is not returned in the response.
 	// Use time.IsZero() to distinguish if a value was returned or not.
-	Sunset time.Time
+	Sunset time.Time `json:"sunset"`
 
 	// (where available) Precipitation volume, mm. Please note that only mm as units of measurement are available for this parameter
-	Rain1H *float64
+	Rain1H *float64 `json:"rain1h"`
 
 	// (where available) Snow volume, mm. Please note that only mm as units of measurement are available for this parameter
-	Snow1H *float64
+	Snow1H *float64 `json:"snow1h"`
 
-	Weather []Weather
+	Weather []Weather `json:"weather"`
 }
 
 func (c *CurrentResponseRaw) Parse() *CurrentResponse {

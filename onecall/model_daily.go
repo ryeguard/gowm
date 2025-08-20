@@ -34,12 +34,12 @@ type DailyResponseRaw struct {
 type DailyResponse struct {
 	dailyResponseCommons
 
-	Dt       time.Time
-	Sunrise  time.Time
-	Sunset   time.Time
-	Moonrise time.Time
-	Moonset  time.Time
-	Weather  []Weather
+	Dt       time.Time `json:"dt"`
+	Sunrise  time.Time `json:"sunrise"`
+	Sunset   time.Time `json:"sunset"`
+	Moonrise time.Time `json:"moonrise"`
+	Moonset  time.Time `json:"moonset"`
+	Weather  []Weather `json:"weather"`
 }
 
 type Temp struct {

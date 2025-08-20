@@ -19,10 +19,10 @@ type OneCallResponseRaw struct {
 // OneCallResponse is parsed from `OneCallResponseRaw` and is a more convenient, ergonomic data structure.
 type OneCallResponse struct {
 	oneCallResponseCommon
-	Current  CurrentResponse
-	Minutely []MinuteResponse
-	Hourly   []HourlyResponse
-	Daily    []DailyResponse
+	Current  CurrentResponse  `json:"current"`
+	Minutely []MinuteResponse `json:"minutely"`
+	Hourly   []HourlyResponse `json:"hourly"`
+	Daily    []DailyResponse  `json:"daily"`
 }
 
 type RainRaw struct {

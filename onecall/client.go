@@ -125,7 +125,7 @@ func (c *Client) CurrentAndForecastRaw(lat, lon float64, opts *OneCallOptions) (
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	if opts.SaveAsJson != "" {
+	if opts != nil && opts.SaveAsJson != "" {
 		f, err := os.Create(opts.SaveAsJson)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create file: %w", err)
