@@ -43,6 +43,32 @@ The [Geocoding API](https://openweathermap.org/api/geocoding-api) client is impl
 
 ## Features
 
+### MCP Server
+
+This repo implements a LLM-friendly MCP server for the OpenWeatherMap APIs. To use the server, first build the binary:
+
+```bash
+go build -o bin/mcp ./mcp
+```
+
+Then, configure your client, e.g., Claude Desktop, to use the binary. As of writing (August 2025), this is done in the `claude_desktop_config.json` found by navigating to Settings > Developer > Edit Config in the Claude Desktop application.
+
+```json
+{
+  "mcpServers": {
+    "weather": {
+      "command": "PATH/TO/REPO/gowm/bin/mcp",
+      "args": [],
+      "env": {
+        "OWM_API_KEY": "YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+
+where `PATH/TO/REPO/gowm/bin/mcp` is the absolute path to the binary and `YOUR_API_KEY` is the OpenWeatherMap API key you can get from signing up/logging in at [openweathermap.org](https://openweathermap.org/).
+
 ### Static Types
 
 Leveraging Go's type system, as well as generating better go enums using [`zarldev/goenums`](https://github.com/zarldev/goenums), using the clients is straight-forward. You don't need to worry about guessing the input format of the API calls, of for example languages and units. Rather than:

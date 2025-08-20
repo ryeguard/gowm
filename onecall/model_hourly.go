@@ -30,11 +30,11 @@ type HourlyResponseRaw struct {
 type HourlyResponse struct {
 	hourlyResponseCommons
 
-	Dt      time.Time
-	Weather []Weather
+	Dt      time.Time `json:"dt"`
+	Weather []Weather `json:"weather"`
 
-	Rain1H *float64
-	Snow1H *float64
+	Rain1H *float64 `json:"rain1h"`
+	Snow1H *float64 `json:"snow1h"`
 }
 
 type hourlyResponsesRaw []HourlyResponseRaw
