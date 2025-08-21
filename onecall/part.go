@@ -1,10 +1,10 @@
 package onecall
 
-type exclude int
+type part int
 
-//go:generate goenums exclude.go
+//go:generate goenums part.go
 const (
-	unknownExclude exclude = iota // invalid
+	unknownPart part = iota // invalid
 	current
 	minutely
 	hourly

@@ -1,15 +1,39 @@
 package onecall
 
-import "strings"
+import (
+	"slices"
+	"strings"
+)
 
-type ExcludeList []Exclude
+type PartList []Part
 
-func (e ExcludeList) String() string {
+func (pl PartList) String() string {
 	var s []string
-	for _, exclude := range e {
+	for _, exclude := range pl {
 		s = append(s, exclude.String())
 	}
 	return strings.Join(s, ",")
+}
+
+func (pl PartList) Add(parts []Part) PartList {
+	for _, part := range parts {
+		if slices.Contains(pl, part) {
+			continue
+		}
+		pl = append(pl, part)
+	}
+	return pl
+}
+
+func (pl PartList) Invert() PartList {
+	var inverted PartList
+	for part := range Parts.All() {
+		if slices.Contains(pl, part) {
+			continue
+		}
+		inverted = append(inverted, part)
+	}
+	return inverted
 }
 
 var idToWeatherCondition map[int64]WeatherCondition

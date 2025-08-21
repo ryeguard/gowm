@@ -35,7 +35,7 @@ type GetWeatherResult struct {
 
 func (w *weatherClient) GetWeather(ctx context.Context, req *mcp.ServerRequest[*mcp.CallToolParamsFor[GetWeatherParams]]) (*mcp.CallToolResultFor[GetWeatherResult], error) {
 	response, err := w.client.GetWeather(req.Params.Arguments.Location, &onecall.OneCallOptions{
-		Exclude: []onecall.Exclude{onecall.Excludes.MINUTELY, onecall.Excludes.HOURLY, onecall.Excludes.ALERTS},
+		Exclude: []onecall.Part{onecall.Parts.MINUTELY, onecall.Parts.HOURLY, onecall.Parts.ALERTS},
 	})
 	if err != nil {
 		return &mcp.CallToolResultFor[GetWeatherResult]{

@@ -70,7 +70,8 @@ func NewClient(opts *ClientOptions) *Client {
 }
 
 type OneCallOptions struct {
-	Exclude    []Exclude
+	Exclude    []Part // Exclude parts of the weather data from the API response. Supersedes Include'd parts.
+	Include    []Part // Include parts of the weather data from the API response. Superseded by Exclude'd parts.
 	Units      Unit
 	Lang       Lang
 	SaveAsJson string
@@ -84,33 +85,12 @@ func (c *Client) CurrentAndForecastRaw(lat, lon float64, opts *OneCallOptions) (
 		return nil, fmt.Errorf("lon argument must be in range (-180; 180), is %v", lon)
 	}
 
-	u, err := url.Parse(c.baseURL)
+	url, err := c.buildURL(lat, lon, opts)
 	if err != nil {
-		return nil, fmt.Errorf("parse url: %w", err)
+		return nil, fmt.Errorf("build URL: %w", err)
 	}
 
-	q := u.Query()
-	q.Set(latParam, fmt.Sprintf("%f", lat))
-	q.Set(lonParam, fmt.Sprintf("%f", lon))
-	q.Set(appIDParam, c.appID)
-
-	if opts != nil && len(opts.Exclude) > 0 {
-		q.Set(excludeParam, ExcludeList(opts.Exclude).String())
-	}
-
-	if opts != nil && opts.Units.IsValid() {
-		q.Set(unitsParam, opts.Units.String())
-	} else if c.unit.IsValid() {
-		q.Set(unitsParam, c.unit.String())
-	}
-
-	if opts != nil && opts.Lang.IsValid() {
-		q.Set(langParam, opts.Lang.String())
-	}
-
-	u.RawQuery = q.Encode()
-
-	resp, err := c.httpClient.Get(u.String())
+	resp, err := c.httpClient.Get(url.String())
 	if err != nil {
 		return nil, fmt.Errorf("get: %w", err)
 	}
@@ -153,4 +133,43 @@ func (c *Client) CurrentAndForecast(lat, lon float64, opts *OneCallOptions) (*On
 	}
 
 	return raw.Parse(), nil
+}
+
+func (c *Client) buildURL(lat, lon float64, opts *OneCallOptions) (*url.URL, error) {
+	u, err := url.Parse(c.baseURL)
+	if err != nil {
+		return nil, fmt.Errorf("parse url: %w", err)
+	}
+
+	q := u.Query()
+	q.Set(latParam, fmt.Sprintf("%f", lat))
+	q.Set(lonParam, fmt.Sprintf("%f", lon))
+	q.Set(appIDParam, c.appID)
+
+	if opts != nil {
+		if len(opts.Exclude) > 0 && len(opts.Include) > 0 {
+			toExclude := PartList(opts.Include).Invert().Add(opts.Exclude)
+			if len(toExclude) > 0 {
+				q.Set(excludeParam, toExclude.String())
+			}
+		} else if len(opts.Exclude) > 0 {
+			q.Set(excludeParam, PartList(opts.Exclude).String())
+		} else if len(opts.Include) > 0 {
+			q.Set(excludeParam, PartList(opts.Include).Invert().String())
+		}
+	}
+
+	if opts != nil && opts.Units.IsValid() {
+		q.Set(unitsParam, opts.Units.String())
+	} else if c.unit.IsValid() {
+		q.Set(unitsParam, c.unit.String())
+	}
+
+	if opts != nil && opts.Lang.IsValid() {
+		q.Set(langParam, opts.Lang.String())
+	}
+
+	u.RawQuery = q.Encode()
+
+	return u, nil
 }
