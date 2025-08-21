@@ -39,8 +39,15 @@ func main() {
 	})
 
 	resp, err := client.CurrentAndForecast(59.3327, 18.0656, &onecall.OneCallOptions{
-		// If we only want CURRENT and DAILY for our location we can exclude the other forecasts.
-		Exclude: []onecall.Exclude{onecall.Excludes.HOURLY, onecall.Excludes.MINUTELY, onecall.Excludes.ALERTS},
+		// The API only supports _excluding_ parts of the response.
+		// We can make sure to exclude ALERTS (superseding the inclusion of ALERTS below).
+		Exclude: []onecall.Part{onecall.Parts.ALERTS},
+
+		// However, this client also implements an Include option.
+		// Behind the scenes, this selections gets inverted to an "exclude" query param.
+		// So, if we only want CURRENT, DAILY, and ALERTS for our location we can specify this.
+		// (NB: ALERTS is _excluded_ because of being superseded by above Exclude.)
+		Include: []onecall.Part{onecall.Parts.CURRENT, onecall.Parts.DAILY, onecall.Parts.ALERTS},
 
 		// Setting `Units` on the OneCall call will overrule the one set on the client.
 		Units: onecall.Units.IMPERIAL,

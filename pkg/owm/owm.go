@@ -21,7 +21,7 @@ type Client struct {
 
 type ClientOptions struct {
 	HttpClient *http.Client
-	AppID      string
+	AppID      string // Your OpenWeather API key. May also be set as environment variable.
 	Logger     *slog.Logger
 }
 
