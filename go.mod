@@ -4,7 +4,7 @@ go 1.24.3
 
 require (
 	github.com/joho/godotenv v1.5.1
-	github.com/modelcontextprotocol/go-sdk v0.2.1-0.20250815204809-1afdb1f27309
+	github.com/modelcontextprotocol/go-sdk v0.2.1-0.20250822180037-9754a2aa8620
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/exp v0.0.0-20250819193227-8b4c13bb791b
 	golang.org/x/time v0.12.0
