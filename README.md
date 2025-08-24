@@ -69,6 +69,18 @@ Then, configure your client, e.g., Claude Desktop, to use the binary. As of writ
 
 where `PATH/TO/REPO/gowm/bin/mcp` is the absolute path to the binary and `YOUR_API_KEY` is the OpenWeatherMap API key you can get from signing up/logging in at [openweathermap.org](https://openweathermap.org/).
 
+### CLI
+
+This repo implements a CLI for interacting with the OpenWeatherMap APIs. It may be used as follows:
+
+```bash
+# With an existing Go installation:
+go run ./cmd/... get-weather 'stockholm,sweden' --api-key=YOUR_API_KEY
+
+# Or, after installation of the CLI binary (instructions to be added):
+gowm get-weather 'stockholm,sweden' --api-key=YOUR_API_KEY
+```
+
 ### Static Types
 
 Leveraging Go's type system, as well as generating better go enums using [`zarldev/goenums`](https://github.com/zarldev/goenums), using the clients is straight-forward. You don't need to worry about guessing the input format of the API calls, of for example languages and units. Rather than:
