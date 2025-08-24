@@ -36,11 +36,8 @@ type ClientOptions struct {
 }
 
 func NewClient(opts *ClientOptions) *Client {
-
-	// Defaults if opts are not provided
 	if opts == nil {
 		opts = &ClientOptions{}
-
 	}
 
 	if opts.AppID == "" {
@@ -100,6 +97,10 @@ func (c *Client) Direct(query string, opts *GeoOptions) (*GeoResponse, error) {
 		return nil, fmt.Errorf("get: %w", err)
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		return nil, fmt.Errorf("unauthorized, make sure AppID/API key is set")
+	}
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status: %s", resp.Status)
@@ -165,6 +166,10 @@ func (c *Client) Reverse(lat, lon float64, opts *GeoOptions) (*GeoResponse, erro
 		return nil, fmt.Errorf("get: %w", err)
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		return nil, fmt.Errorf("unauthorized, make sure AppID/API key is set")
+	}
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status: %s", resp.Status)

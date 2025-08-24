@@ -1,19 +1,43 @@
 package onecall
 
 import (
+	"log/slog"
+	"net/http"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
 
 func TestNewClient(t *testing.T) {
-	client := NewClient(&ClientOptions{
-		AppID: "TEST",
-		Units: Units.METRIC,
-	})
-	_, err := client.CurrentAndForecast(0, 0, nil)
-	require.Error(t, err) // 401 Unauthorized
+	var tests = []struct {
+		name string
+		opts *ClientOptions
+	}{
+		{
+			name: "nil options",
+			opts: nil,
+		},
+		{
+			name: "empty options",
+			opts: &ClientOptions{},
+		},
+		{
+			name: "custom options",
+			opts: &ClientOptions{
+				HttpClient: &http.Client{Timeout: time.Second},
+				Logger:     slog.New(&slog.TextHandler{}),
+				AppID:      "123",
+				Units:      Units.IMPERIAL,
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		c := NewClient(tc.opts)
+		require.NotNil(t, c)
+	}
 }
 
 func TestBuildURL(t *testing.T) {

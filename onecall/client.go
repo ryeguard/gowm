@@ -96,6 +96,10 @@ func (c *Client) CurrentAndForecastRaw(lat, lon float64, opts *OneCallOptions) (
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode == http.StatusUnauthorized {
+		return nil, fmt.Errorf("unauthorized, make sure AppID/API key is set")
+	}
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status: %s", resp.Status)
 	}
