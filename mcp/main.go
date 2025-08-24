@@ -25,31 +25,24 @@ type weatherClient struct {
 	client *owm.Client
 }
 
-type GetWeatherParams struct {
+type GetWeatherArgs struct {
 	Location string `json:"location" mcp:"the place's name to get weather for, on the format 'city,country'" jsonschema:"the place's name to get weather for, on the format 'city,country'"`
 }
 
 type GetWeatherResult struct {
-	Data *onecall.OneCallResponse
+	Data *onecall.CurrentResponse
 }
 
-func (w *weatherClient) GetWeather(ctx context.Context, req *mcp.ServerRequest[*mcp.CallToolParamsFor[GetWeatherParams]]) (*mcp.CallToolResultFor[GetWeatherResult], error) {
-	response, err := w.client.GetWeather(req.Params.Arguments.Location, &onecall.OneCallOptions{
+func (w *weatherClient) GetWeather(ctx context.Context, req *mcp.CallToolRequest, args *GetWeatherArgs) (*mcp.CallToolResult, *GetWeatherResult, error) {
+	response, err := w.client.GetWeather(args.Location, &onecall.OneCallOptions{
 		Exclude: []onecall.Part{onecall.Parts.MINUTELY, onecall.Parts.HOURLY, onecall.Parts.ALERTS},
 	})
 	if err != nil {
-		return &mcp.CallToolResultFor[GetWeatherResult]{
-			IsError: true,
-			Content: []mcp.Content{
-				&mcp.TextContent{
-					Text: fmt.Sprintf("Error getting weather: %v", err),
-				},
-			},
-		}, fmt.Errorf("get weather: %w", err)
+		return nil, nil, fmt.Errorf("get weather: %w", err)
 	}
 
 	weather := response.OneCall
-	content := fmt.Sprintf("Weather for %s:\n\n", req.Params.Arguments.Location)
+	content := fmt.Sprintf("Weather for %s:\n\n", args.Location)
 
 	content += fmt.Sprintf("Current Temperature: %.1f°C\n", weather.Current.Temp)
 	content += fmt.Sprintf("Feels like: %.1f°C\n", weather.Current.FeelsLike)
@@ -72,14 +65,9 @@ func (w *weatherClient) GetWeather(ctx context.Context, req *mcp.ServerRequest[*
 		content += "\n"
 	}
 
-	return &mcp.CallToolResultFor[GetWeatherResult]{
-		StructuredContent: GetWeatherResult{Data: weather},
-		Content: []mcp.Content{
-			&mcp.TextContent{
-				Text: content,
-			},
-		},
-	}, nil
+	return &mcp.CallToolResult{Content: []mcp.Content{&mcp.TextContent{Text: content}}},
+		&GetWeatherResult{Data: &response.OneCall.Current},
+		nil
 }
 
 func main() {
