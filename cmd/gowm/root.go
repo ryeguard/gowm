@@ -9,7 +9,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var owmClient *owm.Client
+var (
+	owmClient *owm.Client
+	// Version information - set by GoReleaser via ldflags
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -25,7 +31,7 @@ var getWeatherCmd = &cobra.Command{
 	Use:   "get-weather [city,country]",
 	Short: "Get weather for a place",
 	Long: `Get the weather for a place.
-    
+
 Examples:
   gowm get-weather 'stockholm,sweden`,
 	Args: cobra.ExactArgs(1),
@@ -42,6 +48,16 @@ Examples:
 	},
 }
 
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Print version information",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Printf("gowm version %s\n", version)
+		fmt.Printf("  commit: %s\n", commit)
+		fmt.Printf("  built:  %s\n", date)
+	},
+}
+
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
@@ -53,6 +69,8 @@ func init() {
 	rootCmd.PersistentFlags().String("api-key", "", "OWM API key")
 
 	rootCmd.AddCommand(getWeatherCmd)
+	rootCmd.AddCommand(mcpCmd)
+	rootCmd.AddCommand(versionCmd)
 }
 
 func setupClient(cmd *cobra.Command, args []string) error {

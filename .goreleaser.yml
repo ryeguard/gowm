@@ -1,0 +1,170 @@
+# GoReleaser configuration for gowm
+# Documentation: https://goreleaser.com
+
+version: 2
+
+before:
+  hooks:
+    # Ensure dependencies are up to date
+    - go mod tidy
+    # Run tests before building
+    - go test -v ./...
+
+builds:
+  # Single unified binary with CLI and MCP server
+  - id: gowm
+    main: ./cmd/gowm
+    binary: gowm
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+    mod_timestamp: '{{ .CommitTimestamp }}'
+
+archives:
+  - id: gowm
+    format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - LICENSE
+      - README.md
+      - CHANGELOG.md
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^ci:'
+      - '^chore:'
+      - Merge pull request
+      - Merge branch
+  groups:
+    - title: 'New Features'
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: 'Bug Fixes'
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: 'Performance Improvements'
+      regexp: '^.*?perf(\([[:word:]]+\))??!?:.+$'
+      order: 2
+    - title: 'Documentation Updates'
+      regexp: '^.*?docs(\([[:word:]]+\))??!?:.+$'
+      order: 3
+    - title: 'Other Changes'
+      order: 999
+
+release:
+  github:
+    owner: ryeguard
+    name: gowm
+  draft: false
+  prerelease: auto
+  mode: replace
+  header: |
+    ## gowm {{ .Version }}
+
+    OpenWeatherMap Go client with unified CLI and MCP server.
+
+    ### Installation
+
+    ```bash
+    # macOS/Linux - Quick install
+    curl -sSL https://raw.githubusercontent.com/ryeguard/gowm/main/install.sh | bash
+
+    # Go users
+    go install github.com/ryeguard/gowm/cmd/gowm@{{ .Tag }}
+
+    # Manual download
+    # Download the appropriate binary for your platform below
+    ```
+
+    ### Usage
+
+    **CLI**:
+    ```bash
+    gowm get-weather 'stockholm,sweden' --api-key=YOUR_KEY
+    ```
+
+    **MCP Server** (for Claude Desktop):
+    ```bash
+    gowm mcp
+    ```
+
+    Configure in Claude Desktop with:
+    ```json
+    {
+      "mcpServers": {
+        "weather": {
+          "command": "/path/to/gowm",
+          "args": ["mcp"],
+          "env": {"OWM_API_KEY": "YOUR_KEY"}
+        }
+      }
+    }
+    ```
+
+  footer: |
+    ### Checksums
+
+    Verify your download using the checksums.txt file.
+
+    **Full Changelog**: https://github.com/ryeguard/gowm/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+# Homebrew tap (optional - uncomment when ready to create tap)
+# brews:
+#   - name: gowm
+#     repository:
+#       owner: ryeguard
+#       name: homebrew-tap
+#     homepage: https://github.com/ryeguard/gowm
+#     description: OpenWeatherMap Go client with CLI and MCP server
+#     license: MIT
+#     install: |
+#       bin.install "gowm"
+#       bin.install "gowm-mcp"
+#     test: |
+#       system "#{bin}/gowm", "--version"
+
+# Docker images (optional)
+# dockers:
+#   - image_templates:
+#       - "ryeguard/gowm-mcp:{{ .Version }}"
+#       - "ryeguard/gowm-mcp:latest"
+#     dockerfile: Dockerfile.mcp
+#     build_flag_templates:
+#       - "--pull"
+#       - "--label=org.opencontainers.image.created={{.Date}}"
+#       - "--label=org.opencontainers.image.title={{.ProjectName}}"
+#       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+#       - "--label=org.opencontainers.image.version={{.Version}}"
