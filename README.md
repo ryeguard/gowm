@@ -45,20 +45,34 @@ The [Geocoding API](https://openweathermap.org/api/geocoding-api) client is impl
 
 ### MCP Server
 
-This repo implements a LLM-friendly MCP server for the OpenWeatherMap APIs. To use the server, first build the binary:
+This repo implements a LLM-friendly MCP (Model Context Protocol) server for the OpenWeatherMap APIs. The MCP server is built into the main `gowm` binary as a subcommand.
+
+#### Usage
+
+Start the MCP server using the `gowm mcp` command:
 
 ```bash
-go build -o bin/mcp ./mcp
+# Start MCP server in stdio mode (default, for Claude Desktop)
+gowm mcp --api-key=YOUR_API_KEY
+
+# Or set API key via environment variable
+export OWM_API_KEY=YOUR_API_KEY
+gowm mcp
+
+# Start in HTTP mode for testing
+gowm mcp --http=localhost:8080
 ```
 
-Then, configure your client, e.g., Claude Desktop, to use the binary. As of writing (August 2025), this is done in the `claude_desktop_config.json` found by navigating to Settings > Developer > Edit Config in the Claude Desktop application.
+#### Configuration for Claude Desktop
+
+Configure your client, e.g., Claude Desktop, to use the MCP server. As of writing (January 2025), this is done in the `claude_desktop_config.json` found by navigating to Settings > Developer > Edit Config in the Claude Desktop application.
 
 ```json
 {
   "mcpServers": {
     "weather": {
-      "command": "PATH/TO/REPO/gowm/bin/mcp",
-      "args": [],
+      "command": "/usr/local/bin/gowm",
+      "args": ["mcp"],
       "env": {
         "OWM_API_KEY": "YOUR_API_KEY"
       }
@@ -67,18 +81,52 @@ Then, configure your client, e.g., Claude Desktop, to use the binary. As of writ
 }
 ```
 
-where `PATH/TO/REPO/gowm/bin/mcp` is the absolute path to the binary and `YOUR_API_KEY` is the OpenWeatherMap API key you can get from signing up/logging in at [openweathermap.org](https://openweathermap.org/).
+where `/usr/local/bin/gowm` is the absolute path to the binary (adjust based on your installation location - use `which gowm` to find it) and `YOUR_API_KEY` is the OpenWeatherMap API key you can get from signing up/logging in at [openweathermap.org](https://openweathermap.org/).
+
+## Installation
+
+The `gowm` binary includes both CLI and MCP server functionality in a single unified tool.
+
+**Option 1: Quick install script (macOS/Linux)**
+
+```bash
+curl -sSL https://raw.githubusercontent.com/ryeguard/gowm/main/install.sh | bash
+```
+
+**Option 2: Download pre-built binary**
+
+Download the latest `gowm` binary for your platform from the [releases page](https://github.com/ryeguard/gowm/releases/latest).
+
+**Option 3: Install with Go**
+
+```bash
+go install github.com/ryeguard/gowm/cmd/gowm@latest
+```
+
+**Option 4: Build from source**
+
+```bash
+git clone https://github.com/ryeguard/gowm.git
+cd gowm
+go build -o bin/gowm ./cmd/gowm
+```
 
 ### CLI
 
-This repo implements a CLI for interacting with the OpenWeatherMap APIs. It may be used as follows:
+Use the CLI to interact with OpenWeatherMap APIs from the command line.
+
+#### Usage
 
 ```bash
-# With an existing Go installation:
-go run ./cmd/... get-weather 'stockholm,sweden' --api-key=YOUR_API_KEY
-
-# Or, after installation of the CLI binary (instructions to be added):
+# Get weather forecast for a location
 gowm get-weather 'stockholm,sweden' --api-key=YOUR_API_KEY
+
+# Or set the API key via environment variable
+export OWM_API_KEY=YOUR_API_KEY
+gowm get-weather 'stockholm,sweden'
+
+# Check version
+gowm version
 ```
 
 ### Static Types

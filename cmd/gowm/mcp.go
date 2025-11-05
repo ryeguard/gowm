@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,27 +11,25 @@ import (
 	"github.com/ryeguard/gowm/internal"
 	"github.com/ryeguard/gowm/onecall"
 	"github.com/ryeguard/gowm/pkg/owm"
+	"github.com/spf13/cobra"
 )
 
-var httpAddr = flag.String("http", "", "if set, use streamable HTTP at this address, instead of stdin/stdout")
-var owmAppID string
-
-func init() {
-	flag.StringVar(&owmAppID, "api-key", "", "OpenWeatherMap API key")
-}
-
+// weatherClient wraps the OWM client for MCP tool handlers
 type weatherClient struct {
 	client *owm.Client
 }
 
+// GetWeatherArgs defines the arguments for the get_weather MCP tool
 type GetWeatherArgs struct {
 	Location string `json:"location" mcp:"the place's name to get weather for, on the format 'city,country'" jsonschema:"the place's name to get weather for, on the format 'city,country'"`
 }
 
+// GetWeatherResult defines the result structure for the get_weather MCP tool
 type GetWeatherResult struct {
 	Data *onecall.CurrentResponse
 }
 
+// GetWeather is the MCP tool handler for getting weather data
 func (w *weatherClient) GetWeather(ctx context.Context, req *mcp.CallToolRequest, args *GetWeatherArgs) (*mcp.CallToolResult, *GetWeatherResult, error) {
 	response, err := w.client.GetWeather(args.Location, &onecall.OneCallOptions{
 		Exclude: []onecall.Part{onecall.Parts.MINUTELY, onecall.Parts.HOURLY, onecall.Parts.ALERTS},
@@ -70,42 +67,86 @@ func (w *weatherClient) GetWeather(ctx context.Context, req *mcp.CallToolRequest
 		nil
 }
 
-func main() {
-	flag.Parse()
+var mcpCmd = &cobra.Command{
+	Use:   "mcp",
+	Short: "Start the MCP server for LLM integration",
+	Long: `Start the Model Context Protocol (MCP) server for integration with LLM clients like Claude Desktop.
+
+The server provides weather data tools that can be used by LLMs to access OpenWeatherMap data.
+
+Examples:
+  # Start MCP server in stdio mode (default, for Claude Desktop)
+  gowm mcp
+
+  # Start MCP server in HTTP mode
+  gowm mcp --http=localhost:8080
+
+Configuration for Claude Desktop (claude_desktop_config.json):
+  {
+    "mcpServers": {
+      "weather": {
+        "command": "/path/to/gowm",
+        "args": ["mcp"],
+        "env": {
+          "OWM_API_KEY": "YOUR_API_KEY"
+        }
+      }
+    }
+  }`,
+	RunE: runMCPServer,
+}
+
+func init() {
+	mcpCmd.Flags().String("http", "", "if set, use streamable HTTP at this address, instead of stdin/stdout")
+}
+
+func runMCPServer(cmd *cobra.Command, args []string) error {
+	// Get API key - try flag first, then environment variables
+	apiKey, err := cmd.Flags().GetString("api-key")
+	if err != nil {
+		return err
+	}
 
 	var opts owm.ClientOptions
-	if owmAppID != "" {
-		opts.AppID = owmAppID
+	if apiKey != "" {
+		opts.AppID = apiKey
 	} else if appID, ok := internal.LoadEnvVar(); ok {
 		opts.AppID = appID
 	} else {
-		log.Fatalln("OpenWeatherMap API key must be set as environment variable or command line flag")
+		return fmt.Errorf("OpenWeatherMap API key must be set via --api-key flag or OWM_API_KEY/OWM_APP_ID environment variable")
 	}
 
+	// Create weather client
 	wc := weatherClient{client: owm.NewClient(&opts).WithOneCall(nil).WithGeo(nil)}
 
+	// Create MCP server
 	server := mcp.NewServer(&mcp.Implementation{
 		Name:    "gowm-api",
-		Version: "0.1.0",
+		Version: version, // Use the version from root.go
 		Title:   "OpenWeatherMap weather data",
 	}, nil)
 
+	// Add weather tool
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "get_weather",
 		Description: "Get the full weather forecast for a location (city,country). Always provide only the location here, not the date or time.",
 	}, wc.GetWeather)
 
-	if *httpAddr != "" {
+	// Start server in appropriate mode
+	httpAddr, err := cmd.Flags().GetString("http")
+	if err != nil {
+		return err
+	}
+
+	if httpAddr != "" {
 		handler := mcp.NewStreamableHTTPHandler(func(*http.Request) *mcp.Server {
 			return server
 		}, nil)
-		log.Printf("MCP handler listening at %s", *httpAddr)
-		http.ListenAndServe(*httpAddr, handler)
+		log.Printf("MCP server listening at %s", httpAddr)
+		return http.ListenAndServe(httpAddr, handler)
 	} else {
-		log.Printf("MCP running on stdio")
+		log.Printf("MCP server running on stdio")
 		t := &mcp.LoggingTransport{Transport: &mcp.StdioTransport{}, Writer: os.Stderr}
-		if err := server.Run(context.Background(), t); err != nil {
-			log.Printf("Server failed: %v", err)
-		}
+		return server.Run(context.Background(), t)
 	}
 }
