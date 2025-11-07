@@ -93,7 +93,7 @@ Examples:
 		geo := geoData[0]
 
 		// Get historical weather
-		resp, err := owmClient.GetHistoricalWeather(geo.Lat, geo.Lon, dt.Unix(), &onecall.OneCallOptions{
+		resp, err := owmClient.GetHistoricalWeather(geo.Lat, geo.Lon, dt, &onecall.OneCallOptions{
 			Units: onecall.Units.METRIC,
 		})
 		if err != nil {

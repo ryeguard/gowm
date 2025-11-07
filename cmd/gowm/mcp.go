@@ -111,7 +111,7 @@ func (w *weatherClient) GetHistoricalWeather(ctx context.Context, req *mcp.CallT
 	lon := geoResponse[0].Lon
 
 	// Get historical weather
-	response, err := w.client.GetHistoricalWeather(lat, lon, dt.Unix(), &onecall.OneCallOptions{
+	response, err := w.client.GetHistoricalWeather(lat, lon, dt, &onecall.OneCallOptions{
 		Units: onecall.Units.METRIC,
 	})
 	if err != nil {

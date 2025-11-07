@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/ryeguard/gowm/geo"
 	"github.com/ryeguard/gowm/internal"
@@ -125,10 +126,10 @@ func (c *Client) GetWeather(query string, opts *onecall.OneCallOptions) (*GeoDir
 	}, nil
 }
 
-// GetHistoricalWeather gets historical weather data for a specific location and timestamp.
-// The dt parameter is a Unix timestamp (UTC) for the historical date.
+// GetHistoricalWeather gets historical weather data for a specific location and date/time.
+// The dt parameter is a time.Time for the historical date (any timezone, converted to UTC).
 // Historical data is available from January 1, 1979 onwards.
-func (c *Client) GetHistoricalWeather(lat, lon float64, dt int64, opts *onecall.OneCallOptions) (*onecall.OneCallResponse, error) {
+func (c *Client) GetHistoricalWeather(lat, lon float64, dt time.Time, opts *onecall.OneCallOptions) (*onecall.OneCallResponse, error) {
 	if c.OneCall == nil {
 		return nil, fmt.Errorf("onecall client is needed")
 	}

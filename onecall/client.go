@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/ryeguard/gowm/internal"
 )
@@ -201,12 +202,12 @@ func (c *Client) HistoricalRaw(lat, lon float64, dt int64, opts *OneCallOptions)
 	return &oneCallResp, nil
 }
 
-// Historical retrieves historical weather data for a specific timestamp.
-// The dt parameter is a Unix timestamp (UTC) for the historical date.
+// Historical retrieves historical weather data for a specific date/time.
+// The dt parameter is a time.Time for the historical date (any timezone, converted to UTC).
 // Historical data is available from January 1, 1979 onwards.
 // Returns parsed response with timestamps as time.Time.
-func (c *Client) Historical(lat, lon float64, dt int64, opts *OneCallOptions) (*OneCallResponse, error) {
-	raw, err := c.HistoricalRaw(lat, lon, dt, opts)
+func (c *Client) Historical(lat, lon float64, dt time.Time, opts *OneCallOptions) (*OneCallResponse, error) {
+	raw, err := c.HistoricalRaw(lat, lon, dt.Unix(), opts)
 	if err != nil {
 		return nil, err
 	}

@@ -16,11 +16,10 @@ func main() {
 
 	// Get historical weather for Stockholm, Sweden on January 1, 2024 at noon UTC
 	historicalDate := time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC)
-	dt := historicalDate.Unix()
 
 	fmt.Printf("Fetching historical weather for %s...\n\n", historicalDate.Format("2006-01-02 15:04:05 MST"))
 
-	resp, err := client.Historical(59.3327, 18.0656, dt, nil)
+	resp, err := client.Historical(59.3327, 18.0656, historicalDate, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -52,7 +51,7 @@ func main() {
 		// Use noon UTC for consistency
 		date = time.Date(date.Year(), date.Month(), date.Day(), 12, 0, 0, 0, time.UTC)
 
-		resp, err := client.Historical(59.3327, 18.0656, date.Unix(), &onecall.OneCallOptions{
+		resp, err := client.Historical(59.3327, 18.0656, date, &onecall.OneCallOptions{
 			Units: onecall.Units.METRIC,
 		})
 		if err != nil {
