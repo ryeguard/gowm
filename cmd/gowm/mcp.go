@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/ryeguard/gowm/internal"
@@ -26,6 +27,17 @@ type GetWeatherArgs struct {
 
 // GetWeatherResult defines the result structure for the get_weather MCP tool
 type GetWeatherResult struct {
+	Data *onecall.CurrentResponse
+}
+
+// GetHistoricalWeatherArgs defines the arguments for the get_historical_weather MCP tool
+type GetHistoricalWeatherArgs struct {
+	Location string `json:"location" mcp:"the place's name to get historical weather for, on the format 'city,country'" jsonschema:"the place's name to get historical weather for, on the format 'city,country'"`
+	Date     string `json:"date" mcp:"the date to get historical weather for in RFC3339 format (e.g. '2024-01-15T12:00:00Z' or '2024-01-15')" jsonschema:"the date to get historical weather for in RFC3339 format (e.g. '2024-01-15T12:00:00Z' or '2024-01-15')"`
+}
+
+// GetHistoricalWeatherResult defines the result structure for the get_historical_weather MCP tool
+type GetHistoricalWeatherResult struct {
 	Data *onecall.CurrentResponse
 }
 
@@ -64,6 +76,72 @@ func (w *weatherClient) GetWeather(ctx context.Context, req *mcp.CallToolRequest
 
 	return &mcp.CallToolResult{Content: []mcp.Content{&mcp.TextContent{Text: content}}},
 		&GetWeatherResult{Data: &response.OneCall.Current},
+		nil
+}
+
+// GetHistoricalWeather is the MCP tool handler for getting historical weather data
+func (w *weatherClient) GetHistoricalWeather(ctx context.Context, req *mcp.CallToolRequest, args *GetHistoricalWeatherArgs) (*mcp.CallToolResult, *GetHistoricalWeatherResult, error) {
+	// Parse the date
+	var dt time.Time
+	var err error
+
+	// Try parsing as RFC3339 first
+	dt, err = time.Parse(time.RFC3339, args.Date)
+	if err != nil {
+		// Try parsing as just a date (YYYY-MM-DD)
+		dt, err = time.Parse("2006-01-02", args.Date)
+		if err != nil {
+			return nil, nil, fmt.Errorf("invalid date format: %s (expected RFC3339 like '2024-01-15T12:00:00Z' or date like '2024-01-15')", args.Date)
+		}
+		// If just a date was provided, set time to noon UTC
+		dt = time.Date(dt.Year(), dt.Month(), dt.Day(), 12, 0, 0, 0, time.UTC)
+	}
+
+	// Get coordinates for the location
+	geoResponse, err := w.client.GetCoordinates(args.Location)
+	if err != nil {
+		return nil, nil, fmt.Errorf("get coordinates: %w", err)
+	}
+
+	if len(geoResponse) == 0 {
+		return nil, nil, fmt.Errorf("location not found: %s", args.Location)
+	}
+
+	lat := geoResponse[0].Lat
+	lon := geoResponse[0].Lon
+
+	// Get historical weather
+	response, err := w.client.GetHistoricalWeather(lat, lon, dt.Unix(), &onecall.OneCallOptions{
+		Units: onecall.Units.METRIC,
+	})
+	if err != nil {
+		return nil, nil, fmt.Errorf("get historical weather: %w", err)
+	}
+
+	weather := response
+	content := fmt.Sprintf("Historical weather for %s on %s:\n\n", args.Location, dt.Format("2006-01-02 15:04:05 MST"))
+
+	content += fmt.Sprintf("Temperature: %.1f°C\n", weather.Current.Temp)
+	content += fmt.Sprintf("Feels like: %.1f°C\n", weather.Current.FeelsLike)
+	content += fmt.Sprintf("Humidity: %d%%\n", weather.Current.Humidity)
+	content += fmt.Sprintf("Pressure: %d hPa\n", weather.Current.Pressure)
+	content += fmt.Sprintf("Wind Speed: %.1f m/s\n", weather.Current.WindSpeed)
+	content += fmt.Sprintf("Cloudiness: %d%%\n", weather.Current.Clouds)
+	content += fmt.Sprintf("UV Index: %.1f\n", weather.Current.UVI)
+
+	if len(weather.Current.Weather) > 0 {
+		content += fmt.Sprintf("Conditions: %s\n", weather.Current.Weather[0].Description)
+	}
+
+	if !weather.Current.Sunrise.IsZero() {
+		content += fmt.Sprintf("Sunrise: %s\n", weather.Current.Sunrise.Format("15:04:05 MST"))
+	}
+	if !weather.Current.Sunset.IsZero() {
+		content += fmt.Sprintf("Sunset: %s\n", weather.Current.Sunset.Format("15:04:05 MST"))
+	}
+
+	return &mcp.CallToolResult{Content: []mcp.Content{&mcp.TextContent{Text: content}}},
+		&GetHistoricalWeatherResult{Data: &response.Current},
 		nil
 }
 
@@ -126,11 +204,16 @@ func runMCPServer(cmd *cobra.Command, args []string) error {
 		Title:   "OpenWeatherMap weather data",
 	}, nil)
 
-	// Add weather tool
+	// Add weather tools
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "get_weather",
 		Description: "Get the full weather forecast for a location (city,country). Always provide only the location here, not the date or time.",
 	}, wc.GetWeather)
+
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "get_historical_weather",
+		Description: "Get historical weather data for a specific location and date. The date should be in the past and can be specified as either an RFC3339 timestamp (e.g. '2024-01-15T12:00:00Z') or a simple date (e.g. '2024-01-15'). Historical data is available from January 1, 1979 onwards.",
+	}, wc.GetHistoricalWeather)
 
 	// Start server in appropriate mode
 	httpAddr, err := cmd.Flags().GetString("http")

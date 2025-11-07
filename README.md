@@ -34,6 +34,9 @@ The [One Call API 3.0](https://openweathermap.org/api/one-call-3) client is impl
 - `CurrentAndForecast`: To get access to current weather, minute forecast for 1 hour, hourly forecast for 48 hours, daily forecast for 8 days and government weather alerts.
   - `CurrentAndForecastRaw` is available and returns a direct mapping of the API response, e.g., not parsing timestamps to `time.Time` but rather leaving them as `int`s.
 
+- `Historical`: To get historical weather data for a specific timestamp. Historical data is available from January 1, 1979 onwards.
+  - `HistoricalRaw` is available and returns a direct mapping of the API response.
+
 ### Geocoding API
 
 The [Geocoding API](https://openweathermap.org/api/geocoding-api) client is implemented in [`geo/client.go`](./geo/client.go). The available methods are:
@@ -46,6 +49,10 @@ The [Geocoding API](https://openweathermap.org/api/geocoding-api) client is impl
 ### MCP Server
 
 This repo implements a LLM-friendly MCP (Model Context Protocol) server for the OpenWeatherMap APIs. The MCP server is built into the main `gowm` binary as a subcommand.
+
+The MCP server provides the following tools:
+- `get_weather`: Get current weather and forecast for a location
+- `get_historical_weather`: Get historical weather data for a specific location and date
 
 #### Usage
 
@@ -121,9 +128,13 @@ Use the CLI to interact with OpenWeatherMap APIs from the command line.
 # Get weather forecast for a location
 gowm get-weather 'stockholm,sweden' --api-key=YOUR_API_KEY
 
+# Get historical weather for a location and date
+gowm get-historical-weather 'stockholm,sweden' '2024-01-15' --api-key=YOUR_API_KEY
+
 # Or set the API key via environment variable
 export OWM_API_KEY=YOUR_API_KEY
 gowm get-weather 'stockholm,sweden'
+gowm get-historical-weather 'new york,us' '2024-01-15T12:00:00Z'
 
 # Check version
 gowm version
