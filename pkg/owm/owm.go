@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/ryeguard/gowm/geo"
 	"github.com/ryeguard/gowm/internal"
@@ -123,4 +124,30 @@ func (c *Client) GetWeather(query string, opts *onecall.OneCallOptions) (*GeoDir
 		GeoDirect: &geo.Data[0],
 		OneCall:   onecall,
 	}, nil
+}
+
+// GetHistoricalWeather gets historical weather data for a specific location and date/time.
+// The dt parameter is a time.Time for the historical date (any timezone, converted to UTC).
+// Historical data is available from January 1, 1979 onwards.
+func (c *Client) GetHistoricalWeather(lat, lon float64, dt time.Time, opts *onecall.OneCallOptions) (*onecall.OneCallResponse, error) {
+	if c.OneCall == nil {
+		return nil, fmt.Errorf("onecall client is needed")
+	}
+
+	return c.OneCall.Historical(lat, lon, dt, opts)
+}
+
+// GetCoordinates performs geocoding to get coordinates for a location query.
+// Returns a slice of geo data matching the query.
+func (c *Client) GetCoordinates(query string) ([]geo.GeoData, error) {
+	if c.Geo == nil {
+		return nil, fmt.Errorf("geo client is needed")
+	}
+
+	geo, err := c.Geo.Direct(query, &geo.GeoOptions{Limit: 5})
+	if err != nil {
+		return nil, fmt.Errorf("geo: %w", err)
+	}
+
+	return geo.Data, nil
 }

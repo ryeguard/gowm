@@ -8,18 +8,21 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/ryeguard/gowm/internal"
 )
 
 const (
-	baseURL      = "https://api.openweathermap.org/data/3.0/onecall"
-	latParam     = "lat"
-	lonParam     = "lon"
-	appIDParam   = "appid"
-	excludeParam = "exclude"
-	unitsParam   = "units"
-	langParam    = "lang"
+	baseURL             = "https://api.openweathermap.org/data/3.0/onecall"
+	baseURLTimemachine  = "https://api.openweathermap.org/data/3.0/onecall/timemachine"
+	latParam            = "lat"
+	lonParam            = "lon"
+	appIDParam          = "appid"
+	excludeParam        = "exclude"
+	unitsParam          = "units"
+	langParam           = "lang"
+	dtParam             = "dt"
 )
 
 type Client struct {
@@ -139,6 +142,79 @@ func (c *Client) CurrentAndForecast(lat, lon float64, opts *OneCallOptions) (*On
 	return raw.Parse(), nil
 }
 
+// HistoricalRaw retrieves historical weather data for a specific timestamp.
+// The dt parameter is a Unix timestamp (UTC) for the historical date.
+// Historical data is available from January 1, 1979 onwards.
+// Returns raw response with timestamps as integers.
+func (c *Client) HistoricalRaw(lat, lon float64, dt int64, opts *OneCallOptions) (*OneCallResponseRaw, error) {
+	if lat < -90 || lat > 90 {
+		return nil, fmt.Errorf("lat argument must be in range (-90; 90), is %v", lat)
+	}
+	if lon < -180 || lon > 180 {
+		return nil, fmt.Errorf("lon argument must be in range (-180; 180), is %v", lon)
+	}
+	if dt <= 0 {
+		return nil, fmt.Errorf("dt (timestamp) must be a positive Unix timestamp, is %v", dt)
+	}
+
+	url, err := c.buildHistoricalURL(lat, lon, dt, opts)
+	if err != nil {
+		return nil, fmt.Errorf("build URL: %w", err)
+	}
+
+	resp, err := c.httpClient.Get(url.String())
+	if err != nil {
+		return nil, fmt.Errorf("get: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		return nil, fmt.Errorf("unauthorized, make sure AppID/API key is set")
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status: %s", resp.Status)
+	}
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	if opts != nil && opts.SaveAsJson != "" {
+		f, err := os.Create(opts.SaveAsJson)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create file: %w", err)
+		}
+		defer f.Close()
+
+		_, err = f.Write(bodyBytes)
+		if err != nil {
+			return nil, fmt.Errorf("failed to write to file: %w", err)
+		}
+	}
+
+	var oneCallResp OneCallResponseRaw
+	if err := json.Unmarshal(bodyBytes, &oneCallResp); err != nil {
+		return nil, fmt.Errorf("failed to decode one call response JSON: %w", err)
+	}
+
+	return &oneCallResp, nil
+}
+
+// Historical retrieves historical weather data for a specific date/time.
+// The dt parameter is a time.Time for the historical date (any timezone, converted to UTC).
+// Historical data is available from January 1, 1979 onwards.
+// Returns parsed response with timestamps as time.Time.
+func (c *Client) Historical(lat, lon float64, dt time.Time, opts *OneCallOptions) (*OneCallResponse, error) {
+	raw, err := c.HistoricalRaw(lat, lon, dt.Unix(), opts)
+	if err != nil {
+		return nil, err
+	}
+
+	return raw.Parse(), nil
+}
+
 func (c *Client) buildURL(lat, lon float64, opts *OneCallOptions) (*url.URL, error) {
 	u, err := url.Parse(c.baseURL)
 	if err != nil {
@@ -162,6 +238,33 @@ func (c *Client) buildURL(lat, lon float64, opts *OneCallOptions) (*url.URL, err
 			q.Set(excludeParam, PartList(opts.Include).Invert().String())
 		}
 	}
+
+	if opts != nil && opts.Units.IsValid() {
+		q.Set(unitsParam, opts.Units.String())
+	} else if c.unit.IsValid() {
+		q.Set(unitsParam, c.unit.String())
+	}
+
+	if opts != nil && opts.Lang.IsValid() {
+		q.Set(langParam, opts.Lang.String())
+	}
+
+	u.RawQuery = q.Encode()
+
+	return u, nil
+}
+
+func (c *Client) buildHistoricalURL(lat, lon float64, dt int64, opts *OneCallOptions) (*url.URL, error) {
+	u, err := url.Parse(baseURLTimemachine)
+	if err != nil {
+		return nil, fmt.Errorf("parse url: %w", err)
+	}
+
+	q := u.Query()
+	q.Set(latParam, fmt.Sprintf("%f", lat))
+	q.Set(lonParam, fmt.Sprintf("%f", lon))
+	q.Set(dtParam, fmt.Sprintf("%d", dt))
+	q.Set(appIDParam, c.appID)
 
 	if opts != nil && opts.Units.IsValid() {
 		q.Set(unitsParam, opts.Units.String())
